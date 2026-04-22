@@ -210,6 +210,16 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 
 ---
 
+## Troubleshooting
+
+**`No matching distribution found for canviz` on Ubuntu/Linux**
+Use `pip3 install canviz` or `python3 -m pip install canviz`.
+CANviz requires Python 3.10+. Check with `python3 --version`.
+Ubuntu 20.04 ships with Python 3.8 — upgrade to Ubuntu 22.04+ 
+or install Python 3.10 separately.
+
+---
+
 ## Known Limitations
 
 - **USB timestamp jitter ~1ms** : a general limitation of USB-connected CAN adapters, not specific to CANviz. Not suitable for sub-millisecond timing analysis.
