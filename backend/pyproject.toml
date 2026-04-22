@@ -26,7 +26,8 @@ dependencies = [
     "cantools>=39",
     "aiofiles>=23",
     "websockets>=12",
-    "python-multipart>=0.0.9"
+    "python-multipart>=0.0.9",
+    "typer[all]>=0.12"
 ]
 
 [project.urls]

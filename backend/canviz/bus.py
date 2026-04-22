@@ -301,7 +301,17 @@ def _open_bus(
         raise ValueError(
             f"Unknown interface: {interface!r}. Choose: gs_usb, slcan, socketcan, virtual"
         )
-
+def open_bus(
+    interface: "InterfaceType",
+    channel: str = "",
+    bitrate: int = 500_000,
+    index: int = 0,
+) -> "can.BusABC":
+    """
+    Public wrapper around _open_bus().
+    Used by CLI subcommands (monitor, capture) that bypass FastAPI entirely.
+    """
+    return _open_bus(interface, channel, bitrate, index)
 
 # Singleton
 bus_manager = BusManager()

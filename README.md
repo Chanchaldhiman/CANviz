@@ -147,6 +147,12 @@ canviz [OPTIONS]
 
 ---
 
+## CLI & Headless Use
+   CANviz works fully in the terminal - no browser required.
+   See the **[CLI Guide](docs/cli.md)** for `monitor`, `capture`, `decode`, and SSH workflows.
+
+---
+
 ## Interface Reference
 
 | Interface | Best for | Windows | Linux / Pi |

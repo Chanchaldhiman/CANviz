@@ -1,0 +1,2092 @@
+[
+  {
+    "ts": 0.032,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "6B 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 107
+    }
+  },
+  {
+    "ts": 0.079,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 EA 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15341.176466
+    }
+  },
+  {
+    "ts": 0.141,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "62 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 38.431385999999996
+    }
+  },
+  {
+    "ts": 0.188,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 0.235,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1C 94 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5148,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 0.282,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "B8 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 184
+    }
+  },
+  {
+    "ts": 0.329,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 DD 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14933.333329000001
+    }
+  },
+  {
+    "ts": 0.391,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "2B 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 16.862751
+    }
+  },
+  {
+    "ts": 0.438,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 0.485,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "02 18 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6146,
+      "LoadPercent": 0.0
+    }
+  },
+  {
+    "ts": 0.532,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "90 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 144
+    }
+  },
+  {
+    "ts": 0.579,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 BC 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13898.039212
+    }
+  },
+  {
+    "ts": 0.641,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "0F 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 5.882355
+    }
+  },
+  {
+    "ts": 0.688,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 0.735,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "11 CC 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 3089,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 0.782,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "26 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 38
+    }
+  },
+  {
+    "ts": 0.844,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 B2 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13584.313721999999
+    }
+  },
+  {
+    "ts": 0.891,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "62 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 38.431385999999996
+    }
+  },
+  {
+    "ts": 0.938,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 0.985,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "16 D2 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4630,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 1.032,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "8F 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 143
+    }
+  },
+  {
+    "ts": 1.094,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A5 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13176.470585
+    }
+  },
+  {
+    "ts": 1.141,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "61 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 38.039229
+    }
+  },
+  {
+    "ts": 1.188,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 1.235,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "19 D2 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4633,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 1.282,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "C1 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 193
+    }
+  },
+  {
+    "ts": 1.344,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 FA 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15843.13725
+    }
+  },
+  {
+    "ts": 1.391,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "47 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 27.843147
+    }
+  },
+  {
+    "ts": 1.438,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 1.485,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0D C1 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 269,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 1.532,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "72 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 114
+    }
+  },
+  {
+    "ts": 1.594,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 FB 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15874.509799
+    }
+  },
+  {
+    "ts": 1.641,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "31 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 19.215692999999998
+    }
+  },
+  {
+    "ts": 1.688,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 1.735,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0F AA 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 2575,
+      "LoadPercent": 1.960785
+    }
+  },
+  {
+    "ts": 1.797,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "78 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 120
+    }
+  },
+  {
+    "ts": 1.844,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 F8 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15780.392152
+    }
+  },
+  {
+    "ts": 1.891,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "2E 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 18.039222
+    }
+  },
+  {
+    "ts": 1.938,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 1.985,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0E 76 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5646,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 2.047,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "2A 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 42
+    }
+  },
+  {
+    "ts": 2.094,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 E3 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15121.568623
+    }
+  },
+  {
+    "ts": 2.141,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "53 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 32.549031
+    }
+  },
+  {
+    "ts": 2.188,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 2.235,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1C B1 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4380,
+      "LoadPercent": 1.960785
+    }
+  },
+  {
+    "ts": 2.297,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "43 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 67
+    }
+  },
+  {
+    "ts": 2.344,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 BB 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13866.666663
+    }
+  },
+  {
+    "ts": 2.391,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "3E 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 24.313734
+    }
+  },
+  {
+    "ts": 2.438,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 2.485,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "16 A5 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 1302,
+      "LoadPercent": 1.960785
+    }
+  },
+  {
+    "ts": 2.547,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "1C 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 28
+    }
+  },
+  {
+    "ts": 2.594,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 C2 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14086.274506
+    }
+  },
+  {
+    "ts": 2.641,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "4D 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 30.196088999999997
+    }
+  },
+  {
+    "ts": 2.688,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 2.75,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "17 4C 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 3095,
+      "LoadPercent": 0.784314
+    }
+  },
+  {
+    "ts": 2.797,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "50 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 80
+    }
+  },
+  {
+    "ts": 2.844,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A7 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13239.215682999999
+    }
+  },
+  {
+    "ts": 2.891,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "61 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 38.039229
+    }
+  },
+  {
+    "ts": 2.938,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 3.0,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0C BF 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 7948,
+      "LoadPercent": 1.960785
+    }
+  },
+  {
+    "ts": 3.047,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "0E 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 14
+    }
+  },
+  {
+    "ts": 3.094,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 AC 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13396.078428
+    }
+  },
+  {
+    "ts": 3.141,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "49 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 28.627460999999997
+    }
+  },
+  {
+    "ts": 3.204,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 3.25,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "03 73 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4867,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 3.297,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "40 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 64
+    }
+  },
+  {
+    "ts": 3.344,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 C6 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14211.764702
+    }
+  },
+  {
+    "ts": 3.391,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "57 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 34.117658999999996
+    }
+  },
+  {
+    "ts": 3.454,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 3.5,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "14 C3 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 788,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 3.547,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "8B 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 139
+    }
+  },
+  {
+    "ts": 3.594,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 C2 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14086.274506
+    }
+  },
+  {
+    "ts": 3.657,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "20 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 12.549024
+    }
+  },
+  {
+    "ts": 3.704,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 3.75,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "16 38 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6166,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 3.797,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "AF 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 175
+    }
+  },
+  {
+    "ts": 3.844,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A7 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13239.215682999999
+    }
+  },
+  {
+    "ts": 3.907,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "05 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 1.960785
+    }
+  },
+  {
+    "ts": 3.954,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 4.0,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1B 41 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 283,
+      "LoadPercent": 0.784314
+    }
+  },
+  {
+    "ts": 4.047,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "9B 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 155
+    }
+  },
+  {
+    "ts": 4.11,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 D3 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14619.607839
+    }
+  },
+  {
+    "ts": 4.157,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "35 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 20.784321
+    }
+  },
+  {
+    "ts": 4.204,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 4.25,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "01 FD 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 7425,
+      "LoadPercent": 2.7450989999999997
+    }
+  },
+  {
+    "ts": 4.297,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "AB 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 171
+    }
+  },
+  {
+    "ts": 4.36,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 E2 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15090.196074
+    }
+  },
+  {
+    "ts": 4.407,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "07 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 2.7450989999999997
+    }
+  },
+  {
+    "ts": 4.454,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 4.5,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "02 38 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6146,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 4.547,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "51 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 81
+    }
+  },
+  {
+    "ts": 4.61,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 DC 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14901.96078
+    }
+  },
+  {
+    "ts": 4.657,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "23 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 13.725494999999999
+    }
+  },
+  {
+    "ts": 4.704,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 4.75,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "16 63 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 790,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 4.813,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "95 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 149
+    }
+  },
+  {
+    "ts": 4.86,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 DC 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14901.96078
+    }
+  },
+  {
+    "ts": 4.907,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "36 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 21.176478
+    }
+  },
+  {
+    "ts": 4.954,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 5.0,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0A 2E 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 3594,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 5.063,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "39 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 57
+    }
+  },
+  {
+    "ts": 5.11,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 F1 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15560.784308999999
+    }
+  },
+  {
+    "ts": 5.157,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "4A 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 29.019617999999998
+    }
+  },
+  {
+    "ts": 5.204,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 5.266,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "17 37 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5911,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 5.313,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "7B 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 123
+    }
+  },
+  {
+    "ts": 5.36,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 C0 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14023.529408
+    }
+  },
+  {
+    "ts": 5.407,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "27 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 15.294122999999999
+    }
+  },
+  {
+    "ts": 5.454,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 5.516,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "03 1B 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6915,
+      "LoadPercent": 0.0
+    }
+  },
+  {
+    "ts": 5.563,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "AE 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 174
+    }
+  },
+  {
+    "ts": 5.61,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 FD 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15937.254896999999
+    }
+  },
+  {
+    "ts": 5.657,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "36 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 21.176478
+    }
+  },
+  {
+    "ts": 5.719,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 5.766,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "04 16 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5636,
+      "LoadPercent": 0.0
+    }
+  },
+  {
+    "ts": 5.813,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "05 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 5
+    }
+  },
+  {
+    "ts": 5.86,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 AB 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13364.705879000001
+    }
+  },
+  {
+    "ts": 5.907,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "4E 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 30.588245999999998
+    }
+  },
+  {
+    "ts": 5.969,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 6.016,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "00 7B 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6912,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 6.063,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "05 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 5
+    }
+  },
+  {
+    "ts": 6.11,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 C0 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14023.529408
+    }
+  },
+  {
+    "ts": 6.172,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "54 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 32.941188
+    }
+  },
+  {
+    "ts": 6.219,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 6.266,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1A 04 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 1050,
+      "LoadPercent": 0.0
+    }
+  },
+  {
+    "ts": 6.313,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "2F 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 47
+    }
+  },
+  {
+    "ts": 6.36,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 D7 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14745.098034999999
+    }
+  },
+  {
+    "ts": 6.422,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "39 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 22.352949
+    }
+  },
+  {
+    "ts": 6.469,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 6.516,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0F 8B 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 2831,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 6.563,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "26 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 38
+    }
+  },
+  {
+    "ts": 6.61,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 CE 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14462.745094
+    }
+  },
+  {
+    "ts": 6.672,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "1D 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 11.372553
+    }
+  },
+  {
+    "ts": 6.719,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 6.766,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "03 90 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4099,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 6.813,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "20 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 32
+    }
+  },
+  {
+    "ts": 6.875,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A7 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13239.215682999999
+    }
+  },
+  {
+    "ts": 6.922,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "20 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 12.549024
+    }
+  },
+  {
+    "ts": 6.969,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 7.016,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "15 5A 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6677,
+      "LoadPercent": 0.784314
+    }
+  },
+  {
+    "ts": 7.063,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "1E 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 30
+    }
+  },
+  {
+    "ts": 7.125,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 D6 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14713.725486
+    }
+  },
+  {
+    "ts": 7.172,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "1F 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 12.156867
+    }
+  },
+  {
+    "ts": 7.219,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 7.266,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "10 69 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 2320,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 7.329,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "66 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 102
+    }
+  },
+  {
+    "ts": 7.375,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A8 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13270.588232
+    }
+  },
+  {
+    "ts": 7.422,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "0D 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 5.098040999999999
+    }
+  },
+  {
+    "ts": 7.485,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 7.516,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "12 29 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 2322,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 7.579,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "2D 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 45
+    }
+  },
+  {
+    "ts": 7.625,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 B9 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13803.921565
+    }
+  },
+  {
+    "ts": 7.672,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "35 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 20.784321
+    }
+  },
+  {
+    "ts": 7.719,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 7.782,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "02 35 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5378,
+      "LoadPercent": 0.392157
+    }
+  },
+  {
+    "ts": 7.829,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "AE 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 174
+    }
+  },
+  {
+    "ts": 7.875,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 B1 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13552.941173
+    }
+  },
+  {
+    "ts": 7.922,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "06 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 7.969,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 8.032,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0D 72 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 4621,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 8.079,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "97 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 151
+    }
+  },
+  {
+    "ts": 8.125,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A4 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13145.098036
+    }
+  },
+  {
+    "ts": 8.172,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "5F 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 37.254915
+    }
+  },
+  {
+    "ts": 8.219,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 8.282,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "0B AE 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 3595,
+      "LoadPercent": 1.960785
+    }
+  },
+  {
+    "ts": 8.329,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "2F 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 47
+    }
+  },
+  {
+    "ts": 8.375,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 EE 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15466.666662
+    }
+  },
+  {
+    "ts": 8.422,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "3A 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 22.745106
+    }
+  },
+  {
+    "ts": 8.485,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 8.532,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "09 7A 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6665,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 8.579,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "0C 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 12
+    }
+  },
+  {
+    "ts": 8.625,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 B4 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13647.05882
+    }
+  },
+  {
+    "ts": 8.672,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "3E 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 24.313734
+    }
+  },
+  {
+    "ts": 8.735,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 8.782,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1A 5F 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 7962,
+      "LoadPercent": 0.784314
+    }
+  },
+  {
+    "ts": 8.829,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "20 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 32
+    }
+  },
+  {
+    "ts": 8.875,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 EE 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15466.666662
+    }
+  },
+  {
+    "ts": 8.922,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "3B 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 23.137262999999997
+    }
+  },
+  {
+    "ts": 8.985,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 9.032,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "00 D8 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 6144,
+      "LoadPercent": 2.3529419999999996
+    }
+  },
+  {
+    "ts": 9.079,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "8D 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 141
+    }
+  },
+  {
+    "ts": 9.125,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 D3 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 14619.607839
+    }
+  },
+  {
+    "ts": 9.188,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "62 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 38.431385999999996
+    }
+  },
+  {
+    "ts": 9.235,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 9.282,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "01 87 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 1793,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 9.329,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "0A 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 10
+    }
+  },
+  {
+    "ts": 9.375,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 FC 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15905.882348
+    }
+  },
+  {
+    "ts": 9.422,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "1E 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 11.76471
+    }
+  },
+  {
+    "ts": 9.485,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 9.532,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "14 81 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 276,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 9.579,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "C8 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 200
+    }
+  },
+  {
+    "ts": 9.625,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 A4 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 13145.098036
+    }
+  },
+  {
+    "ts": 9.688,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "4D 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 30.196088999999997
+    }
+  },
+  {
+    "ts": 9.735,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 9.782,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "16 74 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 5142,
+      "LoadPercent": 1.1764709999999998
+    }
+  },
+  {
+    "ts": 9.829,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "A4 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 164
+    }
+  },
+  {
+    "ts": 9.875,
+    "id_hex": "00000300",
+    "name": "BatteryVoltage",
+    "dlc": 8,
+    "data_hex": "00 E7 00 00 00 00 00 00",
+    "signals": {
+      "VoltageMv": 15247.058819
+    }
+  },
+  {
+    "ts": 9.938,
+    "id_hex": "00000400",
+    "name": "Throttle",
+    "dlc": 8,
+    "data_hex": "57 00 00 00 00 00 00 00",
+    "signals": {
+      "ThrottlePct": 34.117658999999996
+    }
+  },
+  {
+    "ts": 9.985,
+    "id_hex": "000001FF",
+    "name": "HeartBeat",
+    "dlc": 8,
+    "data_hex": "DE AD BE EF 00 00 00 00",
+    "signals": {
+      "Magic": 4022250974,
+      "Reserved": 0
+    }
+  },
+  {
+    "ts": 10.032,
+    "id_hex": "00000100",
+    "name": "EngineSpeed",
+    "dlc": 8,
+    "data_hex": "1A 84 00 00 00 00 00 00",
+    "signals": {
+      "RPM": 1050,
+      "LoadPercent": 1.568628
+    }
+  },
+  {
+    "ts": 10.079,
+    "id_hex": "00000200",
+    "name": "VehicleSpeed",
+    "dlc": 8,
+    "data_hex": "00 00 00 00 00 00 00 00",
+    "signals": {
+      "SpeedKph": 0
+    }
+  }
+]

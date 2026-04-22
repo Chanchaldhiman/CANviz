@@ -1,0 +1,25 @@
+VERSION ""
+
+NS_ :
+
+BS_:
+
+BU_: ECU PI
+
+BO_ 256 EngineSpeed: 8 PI
+ SG_ RPM : 0|13@1+ (1,0) [0|8191] "rpm" ECU
+ SG_ LoadPercent : 13|8@1+ (0.392157,0) [0|100] "%" ECU
+
+BO_ 512 VehicleSpeed: 8 PI
+ SG_ SpeedKph : 0|8@1+ (1,0) [0|200] "kph" ECU
+
+BO_ 768 BatteryVoltage: 8 PI
+ SG_ VoltageMv : 8|8@1+ (31.372549,8000) [8000|16000] "mV" ECU
+
+BO_ 1024 Throttle: 8 PI
+ SG_ ThrottlePct : 0|8@1+ (0.392157,0) [0|100] "%" ECU
+
+BO_ 511 HeartBeat: 8 PI
+ SG_ Magic : 0|32@1+ (1,0) [0|4294967295] "" ECU
+ SG_ Reserved : 32|32@1+ (1,0) [0|0] "" ECU
+
