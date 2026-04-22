@@ -14,6 +14,7 @@ from canviz.bus import bus_manager
 from canviz.config import settings
 from canviz.models import ConnectRequest, ConnectionStatus
 from canviz.ws_broadcaster import broadcaster
+from canviz.stats_store import stats
 
 router = APIRouter(tags=["connection"])
 
@@ -40,6 +41,7 @@ async def connect(req: ConnectRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
     bus_manager.add_frame_callback(broadcaster.on_frame)
+    stats.on_connect(bitrate=req.bitrate)
     broadcaster.start()
 
     return _status()
@@ -48,6 +50,7 @@ async def connect(req: ConnectRequest):
 @router.post("/disconnect", response_model=ConnectionStatus)
 async def disconnect():
     bus_manager.remove_frame_callback(broadcaster.on_frame)
+    stats.on_disconnect()
     broadcaster.clear_queue()
     await bus_manager.disconnect()
     return _status()

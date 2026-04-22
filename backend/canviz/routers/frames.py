@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from canviz.bus import bus_manager
 from canviz.models import SendFrameRequest
 from canviz.ws_broadcaster import broadcaster
+from canviz.stats_store import stats
 
 router = APIRouter(tags=["frames"])
 
@@ -37,6 +38,7 @@ async def send_frame(req: SendFrameRequest):
         raise HTTPException(status_code=400, detail="CAN 2.0 data max 8 bytes.")
     try:
         await bus_manager.send(req.id, req.data, req.is_extended_id)
+        stats.on_tx(len(req.data))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     return {"ok": True, "id": hex(req.id), "data": req.data}

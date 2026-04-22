@@ -15,6 +15,7 @@ from canviz.bus import bus_manager
 from canviz.ws_broadcaster import broadcaster
 from canviz.routers.replay import router as replay_router, set_broadcast_fn
 from canviz.static_serving import mount_frontend
+from canviz.routers import stats as stats_router
 
 
 @asynccontextmanager
@@ -45,6 +46,7 @@ app.include_router(connect.router)
 app.include_router(frames.router)
 app.include_router(dbc.router)
 app.include_router(log.router)
+app.include_router(stats_router.router)
 
 app.include_router(replay_router)
 async def _replay_broadcast(frame_dict: dict) -> None:

@@ -1,10 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useFrameStore } from '../store/frameStore';
+import { useStatsStore } from '../store/statsStore';
 import type { CanFrame } from '../types/can';
 
-// WebSocket is always open while the app is running — independent of CAN
-// connection status. This allows replay frames to flow even when no hardware
-// is connected, and keeps the table frozen (not empty) after disconnect.
 function getWsUrl(): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const host = window.location.host;
@@ -21,6 +19,7 @@ export function useWebSocket() {
   const mountedRef = useRef(true);
 
   const ingestFrame = useFrameStore((s) => s.ingestFrame);
+  const updateStats = useStatsStore((s) => s.updateStats);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -34,8 +33,13 @@ export function useWebSocket() {
 
     ws.onmessage = (event: MessageEvent) => {
       try {
-        const frame = JSON.parse(event.data as string) as CanFrame;
-        ingestFrame(frame);
+        const msg = JSON.parse(event.data as string);
+        if (msg.type === 'stats') {
+          updateStats(msg);
+        } else {
+          // "frame" type, or legacy messages without a type field
+          ingestFrame(msg as CanFrame);
+        }
       } catch {
         // Malformed message — ignore
       }
@@ -56,9 +60,8 @@ export function useWebSocket() {
     ws.onerror = () => {
       // onclose handles reconnect
     };
-  }, [ingestFrame]);
+  }, [ingestFrame, updateStats]);
 
-  // Connect on mount, stay connected for the lifetime of the app
   useEffect(() => {
     mountedRef.current = true;
     connect();
@@ -67,7 +70,7 @@ export function useWebSocket() {
       mountedRef.current = false;
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (wsRef.current) {
-        wsRef.current.onclose = null; // prevent reconnect on unmount
+        wsRef.current.onclose = null;
         wsRef.current.close();
       }
     };

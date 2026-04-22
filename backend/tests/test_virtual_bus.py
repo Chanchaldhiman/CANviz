@@ -12,10 +12,10 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
-from canvaz.server import app
-from canvaz.bus import bus_manager
-from canvaz.ws_broadcaster import broadcaster
-from canvaz.dbc_store import dbc_store
+from canviz.server import app
+from canviz.bus import bus_manager
+from canviz.ws_broadcaster import broadcaster
+from canviz.dbc_store import dbc_store
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -140,10 +140,16 @@ async def test_dbc_decode():
     # Temp byte = 90 raw → 90 - 40 = 50 degC
     data = bytes([0xC8, 0x00, 0x5A, 0x00, 0x00, 0x00, 0x00, 0x00])
     signals = dbc_store.decode(0x100, data)  # 0x100 = 256
-    assert "RPM" in signals
-    assert signals["RPM"] == pytest.approx(100.0)
-    assert "Temp" in signals
-    assert signals["Temp"] == pytest.approx(50.0)
+
+    # signals is a list of dicts: [{"name": "RPM", "value": 100.0, ...}, ...]
+    names = [s["name"] for s in signals]
+    assert "RPM" in names
+    assert "Temp" in names
+
+    rpm  = next(s for s in signals if s["name"] == "RPM")
+    temp = next(s for s in signals if s["name"] == "Temp")
+    assert rpm["value"]  == pytest.approx(100.0)
+    assert temp["value"] == pytest.approx(50.0)
 
 
 async def test_dbc_bad_file(client):
