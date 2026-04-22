@@ -1,25 +1,26 @@
 import { useConnectionStore } from '../../store/connectionStore';
-import { useFrameStore } from '../../store/frameStore';
+import { useStatsStore } from '../../store/statsStore';
 
 const STATUS_LABELS: Record<string, string> = {
-  idle: 'DISCONNECTED',
-  connecting: 'CONNECTING',
-  connected: 'LIVE',
+  idle:          'DISCONNECTED',
+  connecting:    'CONNECTING',
+  connected:     'LIVE',
   disconnecting: 'DISCONNECTING',
-  error: 'ERROR',
+  error:         'ERROR',
 };
 
 export function TopBar() {
-  const status = useConnectionStore((s) => s.status);
-  const config = useConnectionStore((s) => s.config);
-  const fps = useFrameStore((s) => s.framesPerSecond);
-  const total = useFrameStore((s) => s.totalFramesReceived);
+  const status    = useConnectionStore((s) => s.status);
+  const config    = useConnectionStore((s) => s.config);
+  const stats     = useStatsStore((s) => s.stats);
 
   const statusLabel = STATUS_LABELS[status] ?? status.toUpperCase();
-  const isLive = status === 'connected';
+  const isLive      = status === 'connected';
+  const isSlcan     = config.interface === 'slcan';
 
   return (
     <div className="app-topbar" style={styles.bar}>
+
       {/* Logo */}
       <div style={styles.logo}>
         <span style={styles.logoCanvas}>CAN</span>
@@ -31,32 +32,77 @@ export function TopBar() {
         {isLive && (
           <span style={styles.ifaceTag} className="mono text-xs">
             {config.interface.toUpperCase()}
-            {config.interface === 'slcan' && config.channel ? ` · ${config.channel}` : ''}
-            {config.interface === 'gs_usb' ? ` · idx:${config.index ?? 0}` : ''}
+            {config.interface === 'slcan'     && config.channel ? ` · ${config.channel}` : ''}
+            {config.interface === 'socketcan' && config.channel ? ` · ${config.channel}` : ''}
+            {config.interface === 'gs_usb'  ? ` · idx:${config.index ?? 0}` : ''}
             {` · ${(config.bitrate / 1000).toFixed(0)}k`}
           </span>
         )}
       </div>
 
-      {/* Stats + status */}
+      {/* Stats */}
       <div style={styles.right}>
         {isLive && (
           <>
-            <div style={styles.stat}>
-              <span style={styles.statVal} className="mono">{fps}</span>
-              <span style={styles.statUnit}>fps</span>
-            </div>
-            <div style={styles.statDivider} />
-            <div style={styles.stat}>
-              <span style={styles.statVal} className="mono">
-                {total.toLocaleString()}
+            {/* Rx frames */}
+            <StatCell value={stats.frames_rx.toLocaleString()} unit="rx" />
+            <Divider />
+
+            {/* Tx frames */}
+            <StatCell value={stats.frames_tx.toLocaleString()} unit="tx" />
+            <Divider />
+
+            {/* FPS */}
+            <StatCell value={stats.fps.toFixed(1)} unit="fps" />
+            <Divider />
+
+            {/* Bus load */}
+            <StatCell
+              value={stats.bus_load_pct.toFixed(1) + '%'}
+              unit="load"
+              highlight={stats.bus_load_pct > 80}
+            />
+            <Divider />
+
+            {/* Error frames — with slcan caveat tooltip */}
+            <div style={styles.stat} title={
+              isSlcan
+                ? 'slcan firmware typically does not forward error frames to the host — this count will read 0% even on a degraded bus. Use gs_usb (Candlelight) for accurate error frame visibility.'
+                : `${stats.error_pct.toFixed(2)}% of received frames`
+            }>
+              <span
+                style={{
+                  ...styles.statVal,
+                  color: stats.error_frames > 0 && !isSlcan
+                    ? 'var(--accent-red, #f87171)'
+                    : 'var(--accent-green)',
+                }}
+                className="mono"
+              >
+                {stats.error_frames}
               </span>
-              <span style={styles.statUnit}>frames</span>
+              <span style={styles.statUnit}>
+                err{isSlcan ? ' ⚠' : ''}
+              </span>
             </div>
-            <div style={styles.statDivider} />
+            <Divider />
+
+            {/* Bus-off events */}
+            {stats.bus_off_events > 0 && (
+              <>
+                <div style={styles.stat} title="Bus-off: the CAN controller has shut down TX due to excessive errors">
+                  <span style={{ ...styles.statVal, color: 'var(--accent-red, #f87171)' }} className="mono">
+                    {stats.bus_off_events}
+                  </span>
+                  <span style={styles.statUnit}>bus-off</span>
+                </div>
+                <Divider />
+              </>
+            )}
           </>
         )}
 
+        {/* Status pill */}
         <div style={styles.statusPill} data-status={status}>
           <span className={`status-dot ${status}`} />
           <span style={styles.statusText}>{statusLabel}</span>
@@ -64,6 +110,35 @@ export function TopBar() {
       </div>
     </div>
   );
+}
+
+function StatCell({
+  value,
+  unit,
+  highlight = false,
+}: {
+  value: string;
+  unit: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div style={styles.stat}>
+      <span
+        style={{
+          ...styles.statVal,
+          color: highlight ? 'var(--accent-amber, #fbbf24)' : 'var(--accent-green)',
+        }}
+        className="mono"
+      >
+        {value}
+      </span>
+      <span style={styles.statUnit}>{unit}</span>
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={styles.statDivider} />;
 }
 
 const styles: Record<string, React.CSSProperties> = {
@@ -82,12 +157,8 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '-0.02em',
     flexShrink: 0,
   },
-  logoCanvas: {
-    color: 'var(--accent-green)',
-  },
-  logoVas: {
-    color: 'var(--text-secondary)',
-  },
+  logoCanvas: { color: 'var(--accent-green)' },
+  logoVas:    { color: 'var(--text-secondary)' },
   center: {
     flex: 1,
     display: 'flex',
@@ -111,12 +182,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'baseline',
     gap: 4,
+    cursor: 'default',
   },
   statVal: {
     fontSize: 14,
     fontWeight: 600,
     color: 'var(--accent-green)',
-    minWidth: 40,
+    minWidth: 36,
     textAlign: 'right',
   },
   statUnit: {

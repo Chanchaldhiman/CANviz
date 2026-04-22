@@ -24,6 +24,8 @@ from starlette.websockets import WebSocketState
 
 from canviz.dbc_store import dbc_store
 
+from canviz.stats_store import stats
+
 log = logging.getLogger("canviz.ws")
 
 # Throttle: drop frames if queue backlog exceeds this size (0 = disabled in v1)
@@ -33,7 +35,7 @@ _THROTTLE_QUEUE_DEPTH = 0
 class WSBroadcaster:
     def __init__(self) -> None:
         self._clients: list[WebSocket] = []
-        # Queue is created lazily in start() — NOT here.
+        # Queue is created lazily in start() - NOT here.
         # Reason: asyncio.Queue binds to the running event loop at creation time.
         # In tests, pytest-asyncio creates a new loop per test function (STRICT
         # mode). If the Queue were created in __init__ (module import time or
@@ -47,15 +49,17 @@ class WSBroadcaster:
     def start(self) -> None:
         # Only create the queue if it does not already exist.
         # Re-creating it on every connect() call would orphan the existing
-        # _broadcast_loop which is blocked on await self._queue.get() — the
+        # _broadcast_loop which is blocked on await self._queue.get() - the
         # await holds a reference to the OLD queue object, so the loop would
         # be stuck forever while new frames go into the unreachable new queue.
         if self._queue is None:
             self._queue = asyncio.Queue(maxsize=10_000)
         if self._broadcaster_task is None or self._broadcaster_task.done():
             self._broadcaster_task = asyncio.get_event_loop().create_task(
-                self._broadcast_loop(), name="ws-broadcaster"
-            )
+                self._broadcast_loop(), name="ws-broadcaster")
+            asyncio.get_event_loop().create_task(self._stats_loop(), name="ws-stats")
+
+            
 
     async def stop(self) -> None:
         if self._broadcaster_task:
@@ -99,11 +103,11 @@ class WSBroadcaster:
         if drained:
             log.debug("Drained %d stale frames from broadcaster queue.", drained)
 
-    # ── Frame ingestion (called from BusManager callback — sync) ─────────────
+    # ── Frame ingestion (called from BusManager callback - sync) ─────────────
 
     def on_frame(self, msg) -> None:
         """
-        Sync callback — called from the bus reader thread.
+        Sync callback - called from the bus reader thread.
         Converts the python-can Message to a JSON-serialisable dict
         and puts it on the queue for the async broadcaster.
         """
@@ -112,8 +116,9 @@ class WSBroadcaster:
 
         # Drop error/status frames reported by Candlelight firmware.
         # These are internal device notifications (error-passive, bus-off, etc.)
-        # that python-can surfaces as regular messages — they are never on the
+        # that python-can surfaces as regular messages - they are never on the
         # physical CAN bus wire and should not appear in the frame table.
+        stats.on_frame(is_error=msg.is_error_frame, dlc=msg.dlc)
         if msg.is_error_frame:
             return
 
@@ -123,6 +128,7 @@ class WSBroadcaster:
         signals = dbc_store.decode(msg.arbitration_id, bytes(msg.data))
 
         frame = {
+            "type": "frame",
             "id":             hex(msg.arbitration_id),
             "dlc":            msg.dlc,
             "data":           list(msg.data),
@@ -136,7 +142,7 @@ class WSBroadcaster:
         try:
             self._queue.put_nowait(frame)
         except asyncio.QueueFull:
-            log.warning("WS queue full — frame dropped")
+            log.warning("WS queue full - frame dropped")
 
     # ── Broadcaster coroutine ────────────────────────────────────────────────
 
@@ -159,6 +165,23 @@ class WSBroadcaster:
                 except Exception:
                     dead.append(ws)
 
+            for ws in dead:
+                await self.unregister(ws)
+
+    async def _stats_loop(self) -> None:
+        """Broadcast a stats snapshot to all connected clients every second."""
+        while True:
+            await asyncio.sleep(1)
+            if not self._clients:
+                continue
+            payload = json.dumps(stats.snapshot())
+            dead: list[WebSocket] = []
+            for ws in list(self._clients):
+                try:
+                    if ws.client_state == WebSocketState.CONNECTED:
+                        await ws.send_text(payload)
+                except Exception:
+                    dead.append(ws)
             for ws in dead:
                 await self.unregister(ws)
 
