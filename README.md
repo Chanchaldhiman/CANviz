@@ -227,6 +227,8 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 - [ ] **v2** : Signal time-series plotting
 - [ ] **v3** : CAN FD support, UDS / OBD-II decoder, multi-channel
 
+See the [full project board](https://github.com/Chanchaldhiman/CANviz/projects/1) 
+for live status on what's being built.
 ---
 
 ## Other Tools Worth Knowing
