@@ -80,7 +80,12 @@ export function DbcPanel() {
             {messages.slice(0, 40).map((msg) => (
               <div key={msg.id} style={styles.msgRow}>
                 <span className="mono text-xs" style={{ color: 'var(--accent-green)' }}>
-                  {('0x' + msg.id.toString(16).toUpperCase()).padStart(6, ' ')}
+                  {(() => {
+                    const n = typeof msg.id === 'number'
+                      ? msg.id
+                      : parseInt(String(msg.id).replace(/^0x/i, ''), 16);
+                    return ('0x' + n.toString(16).toUpperCase()).padStart(6, ' ');
+                  })()}
                 </span>
                 <span style={styles.msgName} className="text-xs">{msg.name}</span>
                 <span className="text-xs text-muted">{msg.signals?.length ?? 0}s</span>

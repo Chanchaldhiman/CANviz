@@ -1,163 +1,209 @@
-import { useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useConnectionStore } from '../../store/connectionStore';
-import { apiSendFrame } from '../../api/client';
-
-function parseHexBytes(input: string): number[] | null {
-  // Accept "FF 00 3C" or "FF003C" or "FF,00,3C"
-  const cleaned = input.replace(/[,\s]+/g, ' ').trim();
-  if (!cleaned) return [];
-  const parts = cleaned.split(' ');
-  const bytes: number[] = [];
-  for (const p of parts) {
-    const v = parseInt(p, 16);
-    if (isNaN(v) || v < 0 || v > 255) return null;
-    bytes.push(v);
-  }
-  return bytes;
-}
-
-function parseHexId(input: string): number | null {
-  const v = parseInt(input.replace(/^0x/i, ''), 16);
-  return isNaN(v) ? null : v;
-}
+import { useSendFrameStore } from '../../store/sendFrameStore';
 
 const DLC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
+function rateLabel(ms: number): string {
+  if (ms <= 0) return '';
+  const hz = 1000 / ms;
+  return hz >= 1 ? `${hz % 1 === 0 ? hz : hz.toFixed(1)} Hz` : `${(1 / hz).toFixed(1)} s`;
+}
+
 export function SendFramePanel() {
-  const status = useConnectionStore((s) => s.status);
+  const status      = useConnectionStore((s) => s.status);
   const isConnected = status === 'connected';
 
-  const [idInput, setIdInput] = useState('0x123');
-  const [dlc, setDlc] = useState(8);
-  const [dataInput, setDataInput] = useState('00 00 00 00 00 00 00 00');
-  const [isExtended, setIsExtended] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastSent, setLastSent] = useState<string | null>(null);
+  const { frames, addFrame, removeFrame, updateFrame, sendOnce, toggleTimer, stopAll } =
+    useSendFrameStore();
 
-  const handleDlcChange = useCallback((newDlc: number) => {
-    setDlc(newDlc);
-    // Auto-pad/trim data bytes to match DLC
-    const bytes = parseHexBytes(dataInput) ?? [];
-    const padded = Array.from({ length: newDlc }, (_, i) => bytes[i] ?? 0);
-    setDataInput(padded.map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' '));
-  }, [dataInput]);
+  // Stop all timers when disconnected
+  useEffect(() => {
+    if (!isConnected) stopAll();
+  }, [isConnected, stopAll]);
 
-  const handleSend = async () => {
-    setError(null);
-
-    const id = parseHexId(idInput);
-    if (id === null) { setError('Invalid CAN ID — enter a hex value e.g. 0x123'); return; }
-
-    const maxId = isExtended ? 0x1FFFFFFF : 0x7FF;
-    if (id > maxId) { setError(`ID 0x${id.toString(16).toUpperCase()} exceeds max for ${isExtended ? 'extended (29-bit)' : 'standard (11-bit)'} frame`); return; }
-
-    const data = parseHexBytes(dataInput);
-    if (data === null) { setError('Invalid data — enter hex bytes separated by spaces e.g. FF 00 3C'); return; }
-    if (data.length > dlc) { setError(`${data.length} bytes entered but DLC is ${dlc}`); return; }
-
-    // Pad to DLC
-    while (data.length < dlc) data.push(0);
-
-    setSending(true);
-    try {
-      await apiSendFrame({ id, dlc, data, is_extended_id: isExtended });
-      setLastSent(
-        `${isExtended ? '[EXT]' : '[STD]'} 0x${id.toString(16).toUpperCase()} [${dlc}] ` +
-        data.map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' '),
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSending(false);
-    }
+  const inp: React.CSSProperties = {
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-default)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: 11,
+    padding: '2px 5px',
+    outline: 'none',
+    width: '100%',
   };
 
   return (
-    <div>
-      {/* CAN ID */}
-      <div className="field-group">
-        <label className="field-label">CAN ID (hex)</label>
-        <input
-          className="field-input"
-          type="text"
-          placeholder="0x123"
-          value={idInput}
-          onChange={(e) => setIdInput(e.target.value)}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+
+      {/* Column headers */}
+      <div style={{ display: 'grid', ...gridStyle, color: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', padding: '0 2px' }}>
+        <span>CAN ID</span>
+        <span>DLC</span>
+        <span>Data (hex)</span>
+        <span style={{ textAlign: 'center' }}>EXT</span>
+        <span>Interval</span>
+        <span />
       </div>
 
-      {/* DLC */}
-      <div className="field-group">
-        <label className="field-label">DLC (bytes)</label>
-        <select
-          className="field-select"
-          value={dlc}
-          onChange={(e) => handleDlcChange(parseInt(e.target.value))}
-        >
-          {DLC_OPTIONS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-      </div>
+      {/* Frame rows */}
+      {frames.map((f) => (
+        <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 3,
+          background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)',
+          border: `1px solid ${f.isRunning ? 'var(--accent-green)' : 'var(--border-subtle)'}`,
+          padding: '5px 7px', transition: 'border-color 0.2s' }}>
 
-      {/* Data */}
-      <div className="field-group">
-        <label className="field-label">Data (hex bytes)</label>
-        <input
-          className="field-input"
-          type="text"
-          placeholder="FF 00 3C 00 00 00 00 00"
-          value={dataInput}
-          onChange={(e) => setDataInput(e.target.value)}
-          style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}
-        />
-      </div>
+          {/* Input row */}
+          <div style={{ display: 'grid', ...gridStyle, alignItems: 'center', gap: 5 }}>
 
-      {/* Extended ID toggle */}
-      <div className="toggle-row">
-        <label className="toggle-label" htmlFor="ext-toggle">Extended ID (29-bit)</label>
-        <label className="toggle" htmlFor="ext-toggle">
-          <input
-            id="ext-toggle"
-            type="checkbox"
-            checked={isExtended}
-            onChange={(e) => setIsExtended(e.target.checked)}
-          />
-          <span className="toggle-track" />
-        </label>
-      </div>
+            {/* CAN ID */}
+            <input
+              style={inp}
+              value={f.canId}
+              placeholder="0x123"
+              onChange={(e) => updateFrame(f.id, { canId: e.target.value })}
+            />
 
-      {/* Error */}
-      {error && <div className="error-banner" style={{ marginTop: 8 }}>{error}</div>}
+            {/* DLC */}
+            <select
+              style={{ ...inp, cursor: 'pointer' }}
+              value={f.dlc}
+              onChange={(e) => {
+                const dlc = parseInt(e.target.value);
+                const bytes = f.data.trim().split(/\s+/).map((h) => parseInt(h, 16) || 0);
+                const padded = Array.from({ length: dlc }, (_, i) => bytes[i] ?? 0);
+                updateFrame(f.id, {
+                  dlc,
+                  data: padded.map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' '),
+                });
+              }}
+            >
+              {DLC_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
 
-      {/* Last sent */}
-      {lastSent && !error && (
-        <div style={styles.lastSent} className="mono text-xs">
-          ↑ {lastSent}
+            {/* Data */}
+            <input
+              style={{ ...inp, letterSpacing: '0.04em' }}
+              value={f.data}
+              placeholder="FF 00 3C ..."
+              onChange={(e) => updateFrame(f.id, { data: e.target.value })}
+            />
+
+            {/* Extended toggle */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <input
+                type="checkbox"
+                checked={f.isExtended}
+                onChange={(e) => updateFrame(f.id, { isExtended: e.target.checked })}
+                title="Extended 29-bit ID"
+                style={{ cursor: 'pointer', accentColor: 'var(--accent-green)' }}
+              />
+            </div>
+
+            {/* Interval + rate label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <input
+                style={{ ...inp, width: 52 }}
+                type="number"
+                min={10}
+                max={60000}
+                value={f.intervalMs}
+                onChange={(e) => updateFrame(f.id, { intervalMs: parseInt(e.target.value) || 100 })}
+                title="Interval in milliseconds"
+              />
+              <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                ms{f.intervalMs > 0 ? ` · ${rateLabel(f.intervalMs)}` : ''}
+              </span>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
+              {/* Start / Stop timer */}
+              <button
+                title={f.isRunning ? 'Stop timer' : 'Start timer'}
+                disabled={!isConnected || f.intervalMs <= 0}
+                onClick={() => toggleTimer(f.id)}
+                style={{
+                  ...btnStyle,
+                  background: f.isRunning ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.12)',
+                  border: `1px solid ${f.isRunning ? '#ef444440' : '#22c55e40'}`,
+                  color: f.isRunning ? '#ef4444' : '#22c55e',
+                  opacity: (!isConnected || f.intervalMs <= 0) ? 0.4 : 1,
+                }}
+              >
+                {f.isRunning ? '■' : '▶'}
+              </button>
+
+              {/* Send once */}
+              <button
+                title="Send once"
+                disabled={!isConnected}
+                onClick={() => sendOnce(f.id)}
+                style={{ ...btnStyle, opacity: !isConnected ? 0.4 : 1 }}
+              >
+                ↑
+              </button>
+
+              {/* Remove */}
+              <button
+                title="Remove frame"
+                onClick={() => removeFrame(f.id)}
+                style={{ ...btnStyle, color: 'var(--text-muted)' }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Feedback row */}
+          {(f.lastSent || f.error) && (
+            <div style={{
+              fontSize: 10, fontFamily: 'var(--font-mono)',
+              color: f.error ? '#ef4444' : 'var(--accent-green)',
+              paddingTop: 2, borderTop: '1px solid var(--border-subtle)',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {f.error ? `⚠ ${f.error}` : `↑ ${f.lastSent}`}
+            </div>
+          )}
         </div>
-      )}
+      ))}
 
-      {/* Send button */}
+      {/* Add frame button */}
       <button
-        className="btn btn-primary btn-full"
-        style={{ marginTop: 10 }}
-        disabled={!isConnected || sending}
-        onClick={handleSend}
+        onClick={addFrame}
+        style={{
+          background: 'none',
+          border: '1px dashed var(--border-default)',
+          borderRadius: 'var(--radius-sm)',
+          color: 'var(--text-muted)',
+          fontSize: 11,
+          fontFamily: 'var(--font-mono)',
+          padding: '5px',
+          cursor: 'pointer',
+          width: '100%',
+        }}
       >
-        {sending ? 'Sending…' : isConnected ? 'Send Frame' : 'Not Connected'}
+        + Add Frame
       </button>
     </div>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  lastSent: {
-    marginTop: 6,
-    padding: '4px 6px',
-    background: 'var(--accent-green-dim)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--accent-green)',
-    wordBreak: 'break-all',
-  },
+const gridStyle = {
+  gridTemplateColumns: '72px 44px 1fr 28px 110px auto',
+  gap: 5,
+};
+
+const btnStyle: React.CSSProperties = {
+  background: 'var(--bg-panel)',
+  border: '1px solid var(--border-default)',
+  borderRadius: 'var(--radius-sm)',
+  color: 'var(--text-secondary)',
+  fontSize: 12,
+  padding: '2px 6px',
+  cursor: 'pointer',
+  fontFamily: 'var(--font-mono)',
+  lineHeight: 1.4,
 };

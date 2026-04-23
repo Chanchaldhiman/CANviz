@@ -2,11 +2,13 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { SendFramePanel } from '../SendFramePanel/SendFramePanel';
 import { LogControls } from '../LogControls/LogControls';
 import { ReplayPanel } from '../ReplayPanel/ReplayPanel';
+import { SignalPlot } from '../SignalPlot/SignalPlot';
 
 const TABS = [
   { id: 'send',   label: 'Send Frame' },
   { id: 'log',    label: 'Record' },
   { id: 'replay', label: 'Replay' },
+  { id: 'plot',   label: 'Plot' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -89,6 +91,7 @@ export function BottomPanel() {
         {activeTab === 'send'   && <SendFramePanel />}
         {activeTab === 'log'    && <LogControls />}
         {activeTab === 'replay' && <ReplayPanel />}
+        {activeTab === 'plot'   && <SignalPlot />}
       </div>
     </div>
   );

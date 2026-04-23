@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import type { CanFrame, FrameRow, FilterState } from '../types/can';
+import { usePlotStore } from './plotStore';
+import { addSignalValues } from './plotStore';
 
 // Rolling window duration for rate calculation (ms)
 const RATE_WINDOW_MS = 1000;
@@ -78,7 +80,7 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
     const nowMs = Date.now();
     const store = get();
 
-    // Normalise id: backend sends hex string "0x1a2" or int — always store as number
+    // Normalise id: backend sends hex string "0x1a2" or int - always store as number
     const numericId = typeof frame.id === 'string'
       ? parseInt(frame.id, 16)
       : frame.id;
@@ -110,6 +112,12 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
       decodedSignals: signals,
     };
 
+    // Feed decoded signals into the plot store
+    if (signals?.length) {
+      const tSec = nowMs / 1000;
+      addSignalValues(signals, tSec);
+    }
+
     const frames = new Map(store.frames);
     frames.set(numericId, updated);
 
@@ -119,7 +127,7 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
     // Apply current filter
     const { filter } = store;
     const filteredList = applyFilter(frameList, filter);
-
+    
     set({
       frames,
       frameList: filteredList,
@@ -131,6 +139,7 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
 
   clearFrames: () => {
     rateBuckets.clear();
+    usePlotStore.getState().clearBuffers();
     set({
       frames: new Map(),
       frameList: [],

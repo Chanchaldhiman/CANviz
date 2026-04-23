@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "canviz"
-version = "0.1.5"
+version = "0.2.0"
 description = "Open-source browser-based CAN bus analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,13 +27,15 @@ dependencies = [
     "aiofiles>=23",
     "websockets>=12",
     "python-multipart>=0.0.9",
-    "typer[all]>=0.12"
+    "typer[all]>=0.12",
+    "rich>=13",
 ]
 
 [project.urls]
 Homepage = "https://github.com/Chanchaldhiman/CANviz"
 Repository = "https://github.com/Chanchaldhiman/CANviz"
 Issues = "https://github.com/Chanchaldhiman/CANviz/issues"
+Changelog = "https://github.com/Chanchaldhiman/CANviz/releases"
 
 [project.scripts]
 canviz = "canviz.cli:main"

@@ -1,5 +1,5 @@
 /* ============================================================
-   CANviz Design System — Industrial Dark Theme
+   CANviz Design System - Industrial Dark Theme
    ============================================================ */
 
 :root {
@@ -323,6 +323,12 @@ body {
   display: flex;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-panel);
+}
+
+.u-select {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 2px;
 }
 
 .tab-btn {
