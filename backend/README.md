@@ -238,7 +238,7 @@ canviz decode --input trace.json --dbc vehicle.dbc --output decoded.csv
 # API-only server (no browser)
 canviz serve --headless --port 8080
 ```
-See the **[CLI Guide](docs/cli.md)** for `monitor`, `capture`, `decode`, and SSH workflows.
+See the **[CLI Guide](https://github.com/Chanchaldhiman/CANviz/blob/main/docs/cli.md)** for `monitor`, `capture`, `decode`, and SSH workflows.
 ---
 
 ## REST API & WebSocket
@@ -349,10 +349,10 @@ hardware we have not tried** - a CANable 2.0, a PEAK PCAN-USB, anything on macOS
 anything on a COM port. No code required. Open an issue and tell us what happened.
 
 Bug reports, DBC files that decode incorrectly, and code contributions are all welcome.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get the dev environment running.
+See [CONTRIBUTING.md](https://github.com/Chanchaldhiman/CANviz/blob/main/CONTRIBUTING.md) for how to get the dev environment running.
 
 ---
 
 ## License
 
-MIT : see [LICENSE](LICENSE).
+MIT : see [LICENSE](https://github.com/Chanchaldhiman/CANviz/blob/main/LICENSE).
