@@ -3,9 +3,9 @@ canviz/routers/connect.py
 -------------------------
 REST endpoints for bus lifecycle management.
 
-POST /connect    — open the CAN interface and start streaming
-POST /disconnect — stop the interface cleanly
-GET  /status     — current connection state
+POST /connect    - open the CAN interface and start streaming
+POST /disconnect - stop the interface cleanly
+GET  /status     - current connection state
 """
 
 from fastapi import APIRouter, HTTPException
@@ -26,6 +26,14 @@ async def connect(req: ConnectRequest):
     if req.interface == "gs_usb":
         index   = int(req.channel) if req.channel != "" else req.index
         channel = ""
+    elif req.interface == "kvaser":
+        # python-can kvaser wants channel as an integer index
+        index   = req.index
+        channel = int(req.channel) if req.channel not in ("", None) else req.index
+    elif req.interface == "pcan":
+        # python-can pcan wants channel as a string e.g. "PCAN_USBBUS1"
+        index   = req.index
+        channel = str(req.channel) if req.channel else "PCAN_USBBUS1"
     else:
         index   = req.index
         channel = str(req.channel)

@@ -296,10 +296,17 @@ def _open_bus(
 
     elif interface == "virtual":
         return can.Bus(interface="virtual", channel="vcan0", receive_own_messages=True)
+    
+    elif interface == "pcan":
+        ch = channel if channel else "PCAN_USBBUS1"
+        return can.Bus(interface="pcan", channel=ch, bitrate=bitrate)
+
+    elif interface == "kvaser":
+        return can.Bus(interface="kvaser", channel=index, bitrate=bitrate)
 
     else:
         raise ValueError(
-            f"Unknown interface: {interface!r}. Choose: gs_usb, slcan, socketcan, virtual"
+            f"Unknown interface: {interface!r}. Choose: gs_usb, slcan, socketcan, virtual, pcan, kvaser"
         )
 def open_bus(
     interface: "InterfaceType",

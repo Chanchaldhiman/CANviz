@@ -147,7 +147,7 @@ no driver install, no reflashing needed.**
 
 - **slcan** : devices running slcan firmware (COM port)
 - **SocketCAN** : Linux, Raspberry Pi, WSL2
-- **PEAK PCAN-USB, Kvaser, Vector** : via python-can config, no code changes
+- **PEAK PCAN-USB, Kvaser** : via python-can config, no code changes
 - **Virtual bus** : software loopback, no hardware needed
 
 ---
@@ -289,8 +289,8 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 | FYSETC UCAN (STM32F072, Candlelight) | gs_usb | Windows 11 | ✅ Tested |
 | FYSETC UCAN (STM32F072, Candlelight) | gs_usb | Raspberry Pi OS | ✅ Tested |
 | Virtual bus | virtual | Windows / Linux | ✅ Tested |
-| PEAK PCAN-USB | pcan | Windows / Linux | Config only |
-| Kvaser | kvaser | Windows / Linux | Config only |
+| PEAK PCAN-USB | pcan | Windows / Linux | ✅ Tested |
+| Kvaser | kvaser | Windows / Linux | Blocked, see Known Limitations |
 
 **Throughput:** 2,000 fps sustained - zero frame loss, stable UI, no memory growth.
 
@@ -303,7 +303,14 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 - **Bus load above 2,000 fps** : untested. A server-side throttling hook is built in
   and can be enabled if needed.
 - **CAN FD** : frames with >8 byte payloads display as raw hex. Full CAN FD UI
-  support is in progress and requires CAN FD capable hardware (~$53 minimum).
+  support is in progress.
+- **Kvaser on Windows** : CANviz has full UI support for Kvaser hardware (interface
+  dropdown, device index selector). However, connecting fails due to multiple
+  `canIoCtlInit` calls returning `canERR_PARAM (-1)` in python-can 4.6.1 on Windows.
+  This is a python-can bug, tracked at
+  [python-can #2051](https://github.com/hardbyte/python-can/issues/2051). No CANviz
+  code change is needed - once the upstream fix releases, upgrade python-can and
+  Kvaser will work without any changes on your end.
 - **slcan error frames** : slcan firmware on most adapters silently drops error frames
   before forwarding to the host. Bus error statistics will read 0% on slcan interfaces
   even on a degraded bus. Use gs_usb (Candlelight) for accurate error visibility.
@@ -333,12 +340,19 @@ Use `pip3 install canviz` or `python3 -m pip install canviz`.
 CANviz requires Python 3.10+. Ubuntu 20.04 ships Python 3.8 : upgrade to 22.04+
 or install Python 3.10 separately.
 
+**Kvaser device fails to connect (`canIoCtl failed - Error in parameter`)**
+This is a known bug in python-can 4.6.1, not a CANviz issue. Tracked at
+[python-can #2051](https://github.com/hardbyte/python-can/issues/2051).
+No workaround is available until python-can releases a fix. Upgrade python-can
+once the issue is resolved and Kvaser will connect without any other changes.
+ 
+**PEAK PCAN-USB fails to connect**
+Ensure the [PEAK driver](https://www.peak-system.com/Drivers.523.0.html) is installed.
+Device Manager must show the device under **CAN-Hardware**, not as an unknown device.
+
 **Device shows a COM port on Windows**
 Your adapter is running slcan firmware, not Candlelight. Use:
 `canviz --interface slcan --channel COM3`
-
-**Plot shows wrong date (1969/1970)**
-Update to the latest version : `pip install --upgrade canviz`.
 
 ---
 

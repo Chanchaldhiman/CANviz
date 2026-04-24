@@ -10,10 +10,12 @@ const BITRATES = [
 ];
 
 const INTERFACES: { label: string; value: InterfaceType; hint: string }[] = [
-  { value: 'gs_usb',    label: 'gs_usb (Candlelight)', hint: 'FYSETC UCAN, CANable 2.0 Pro — no COM port' },
-  { value: 'slcan',     label: 'slcan (COM port)',      hint: 'CANable slcan firmware — appears as COM3 etc.' },
-  { value: 'socketcan', label: 'SocketCAN (Linux)',     hint: 'Linux SocketCAN — Raspberry Pi, WSL2. Run: sudo ip link set can0 up type can bitrate 500000' },
-  { value: 'virtual',   label: 'virtual (testing)',     hint: 'Software bus — no hardware required' },
+  { value: 'gs_usb',    label: 'gs_usb (Candlelight)', hint: 'FYSETC UCAN, CANable 2.0 Pro - no COM port' },
+  { value: 'slcan',     label: 'slcan (COM port)',      hint: 'CANable slcan firmware - appears as COM3 etc.' },
+  { value: 'socketcan', label: 'SocketCAN (Linux)',     hint: 'Linux SocketCAN - Raspberry Pi, WSL2. Run: sudo ip link set can0 up type can bitrate 500000' },
+  { value: 'virtual',   label: 'virtual (testing)',     hint: 'Software bus - no hardware required' },
+  { value: 'pcan',      label: 'PCAN (PEAK)',            hint: 'PEAK PCAN-USB - requires PEAK driver installed. Shows as CAN-Hardware in Device Manager.' },
+  { value: 'kvaser',    label: 'Kvaser',                 hint: 'Kvaser hardware - requires Kvaser CANlib installed. Shows as CAN-Hardware (Kvaser) in Device Manager.' },
 ];
 
 export function ConnectionPanel() {
@@ -101,7 +103,40 @@ export function ConnectionPanel() {
         </div>
       )}
 
-      {/* Bitrate — not shown for virtual */}
+      {/* pcan: USB channel selector */}
+      {config.interface === 'pcan' && (
+        <div className="field-group">
+          <label className="field-label">USB Channel</label>
+          <select
+            className="field-select"
+            value={config.channel ?? 'PCAN_USBBUS1'}
+            disabled={isConnected || isBusy}
+            onChange={(e) => setConfig({ channel: e.target.value })}
+          >
+            {[1,2,3,4,5,6,7,8].map((n) => (
+              <option key={n} value={`PCAN_USBBUS${n}`}>PCAN_USBBUS{n}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* kvaser: device index */}
+      {config.interface === 'kvaser' && (
+        <div className="field-group">
+          <label className="field-label">Device Index</label>
+          <input
+            className="field-input"
+            type="number"
+            min={0}
+            max={9}
+            value={config.index ?? 0}
+            disabled={isConnected || isBusy}
+            onChange={(e) => setConfig({ index: parseInt(e.target.value) || 0 })}
+          />
+        </div>
+      )}
+
+      {/* Bitrate - not shown for virtual */}
       {config.interface !== 'virtual' && (
         <div className="field-group">
           <label className="field-label">Bitrate</label>
@@ -139,7 +174,7 @@ export function ConnectionPanel() {
         </button>
       </div>
 
-      {/* Clear buffer — only useful when connected or after a session */}
+      {/* Clear buffer - only useful when connected or after a session */}
       {totalFrames > 0 && (
         <>
           <div className="divider" style={{ marginTop: 10 }} />

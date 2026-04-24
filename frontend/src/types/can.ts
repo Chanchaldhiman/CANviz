@@ -49,7 +49,7 @@ export type ConnectionStatus =
   | 'error'
   | 'disconnecting';
 
-export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual';
+export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual' | 'pcan' | 'kvaser';
 
 export interface ConnectionConfig {
   interface: InterfaceType;

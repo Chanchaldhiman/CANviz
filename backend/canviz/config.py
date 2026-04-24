@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 
-InterfaceType = Literal["gs_usb", "slcan", "virtual", "socketcan"]
+InterfaceType = Literal["gs_usb", "slcan", "virtual", "socketcan", "pcan", "kvaser"]
 
 
 @dataclass
