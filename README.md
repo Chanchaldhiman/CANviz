@@ -3,47 +3,80 @@
 **A browser-based CAN bus analyzer. Plug in. One command. Analyze.**
 
 [![PyPI version](https://img.shields.io/pypi/v/canviz.svg)](https://pypi.org/project/canviz/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/canviz.svg)](https://pypi.org/project/canviz/)
+[![Total Downloads](https://img.shields.io/pepy/dt/canviz?label=total%20downloads)](https://pepy.tech/project/canviz)
+[![Monthly Downloads](https://static.pepy.tech/badge/canviz/month)](https://pepy.tech/project/canviz)
 [![Python](https://img.shields.io/pypi/pyversions/canviz.svg)](https://pypi.org/project/canviz/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz?style=social)](https://github.com/Chanchaldhiman/CANviz)
 
----
-![CANviz demo](docs/demo.gif)
----
-## Why CANviz?
- 
-Getting started with CAN bus analysis usually means one of two things:
- 
-- **Expensive commercial tools** : PEAK, Kvaser, Vector hardware bundles cost hundreds to thousands of dollars, and the software is tied to their ecosystem
-- **Complex open source setups** : compiling from source, installing native desktop apps, managing dependencies
-CANviz takes a different approach. It is a `pip install` away, runs entirely in your browser, and works with cheap commodity hardware that costs less than a meal.
- 
 ```bash
 pip install canviz
 canviz
 # → browser opens at http://localhost:8080
 ```
 
-Works with any Candlelight-firmware USB CAN adapter (~$8).
-No GUI install. No driver setup. No account. No internet connection required.
+![CANviz demo](docs/demo.gif)
+
+CANviz works with any Candlelight-firmware USB CAN adapter (~$8). No GUI install,
+no driver setup, no account, no internet connection required. It runs entirely in
+your browser at `localhost` - whether you are an embedded engineer debugging an ECU,
+a researcher studying automotive protocols, or a hobbyist on your first CAN project.
+
+It is designed to complement the excellent tools that already exist.
+[SavvyCAN](https://github.com/collin80/SavvyCAN) is a mature native desktop analyzer
+with a strong community - if you prefer a native app with a long track record, it is
+an excellent choice. [python-can](https://github.com/hardbyte/python-can) is the library
+CANviz is built on and is invaluable for scripting and automation. CANviz takes a
+different approach: browser-first, pip-installable, and SSH-friendly for engineers
+working on remote and headless setups.
 
 ---
 
-## What CANviz is
+## Quick Start
 
-CANviz is a `pip install` away, runs entirely in your browser at `localhost`, and works
-with cheap commodity hardware. The goal is to make CAN bus analysis accessible,
-whether you are an embedded engineer debugging a vehicle ECU, a researcher studying
-automotive protocols, or a hobbyist building your first CAN project.
+### Windows - gs_usb (Candlelight firmware)
+```bash
+pip install canviz
+canviz
+```
+Auto-detects your connected device. Browser opens automatically.
 
-It is designed to complement, not replace, the excellent tools that already exist.
-[SavvyCAN](https://github.com/collin80/SavvyCAN) is a mature, feature-rich native desktop
-analyzer with a strong community, if you prefer a native app with a long track record,
-it is an excellent choice. [python-can](https://github.com/hardbyte/python-can) is the
-library CANviz is built on and is invaluable for scripting and automation.
-CANviz takes a different approach: browser-first, pip-installable, and SSH-friendly
-for engineers working on remote and headless setups.
+### Windows - slcan / COM port
+```bash
+canviz --interface slcan --channel COM3 --bitrate 500000
+```
+
+### Raspberry Pi / Linux
+```bash
+sudo ip link set can0 up type can bitrate 500000
+canviz --interface socketcan --channel can0
+```
+
+### Remote machine over SSH
+```bash
+# On your laptop - forward port 8080 from the remote machine
+ssh -L 8080:localhost:8080 user@remote-ip
+
+# On the remote machine
+canviz --interface socketcan --channel can0
+
+# Open in your local browser
+http://localhost:8080
+```
+
+### Headless / no browser
+```bash
+canviz serve --headless --port 8080
+```
+
+### No hardware - virtual bus
+```bash
+canviz --interface virtual
+```
+
+> **If your device shows a COM port** in Device Manager, it is running slcan firmware -
+> use the slcan quick start above. Candlelight devices enumerate as `gs_usb / WinUSB`
+> with no COM port.
 
 ---
 
@@ -61,18 +94,18 @@ message table. Toggle between raw and decoded view at any time.
 ### Signal time-series plotting *(new in v0.2.0)*
 Plot any DBC-decoded signal as a live time-series graph. Select up to 8 signals
 simultaneously on a shared time axis. Built on [uPlot](https://github.com/leeoniya/uPlot)
-: handles 36,000 buffered points per signal with LTTB downsampling, rendering at a
+- handles 36,000 buffered points per signal with LTTB downsampling, rendering at a
 smooth 10 Hz regardless of bus rate.
 
-- **Adjustable time window** : 10s, 30s, 1m, 5m, 30m
-- **Zoom and pan** : drag to zoom, double-click to resume live scroll
-- **Threshold lines** : set a limit per signal; line and pill border turn red on breach
-- **Multi-signal overlay** : compare RPM, throttle, and vehicle speed on one axis
-- **PNG export** : one click, includes signal legend and axis labels
+- **Adjustable time window** - 10s, 30s, 1m, 5m, 30m
+- **Zoom and pan** - drag to zoom, double-click to resume live scroll
+- **Threshold lines** - set a limit per signal; line and pill border turn red on breach
+- **Multi-signal overlay** - compare RPM, throttle, and vehicle speed on one axis
+- **PNG export** - one click, includes signal legend and axis labels
 
 ### Bus health statistics *(new in v0.2.0)*
 Always-visible status bar showing frames Rx/Tx, bus load %, error frame count,
-bus-off events, and KB/s throughput. Error frame visibility depends on hardware, 
+bus-off events, and KB/s throughput. Error frame visibility depends on hardware -
 slcan devices typically drop error frames silently; a tooltip explains this when
 a slcan interface is active.
 
@@ -81,21 +114,14 @@ Build a list of frames, each with its own independent transmission interval.
 Send a heartbeat at 20 Hz and a speed signal at 10 Hz simultaneously.
 Each row has its own start/stop control. State persists across tab switches.
 
+### CLI and headless mode *(new in v0.2.0)*
+`canviz monitor` renders a live colour-coded table in the terminal - works over SSH,
+in CI pipelines, and on headless Raspberry Pi setups. See the
+[CLI Reference](#cli-reference) below for all subcommands.
+
 ### Record and replay
 Record sessions to industry-standard `.asc` and `.csv` formats. Replay any log file
 with adjustable speed (0.5× to 10×).
-
-### CLI and headless mode *(new in v0.2.0)*
-```bash
-canviz monitor --interface socketcan --channel can0 --dbc vehicle.dbc
-canviz capture --output trace.json --duration 60
-canviz decode  --input trace.json --dbc vehicle.dbc
-canviz serve   --headless --port 8080   # API + WebSocket only, no browser
-```
-
-`canviz monitor` renders a live colour-coded table in the terminal, works over SSH,
-in CI pipelines, and on headless Raspberry Pi setups where opening a browser is not
-an option.
 
 ### Filtering
 Filter by message ID (hex range) or signal name. Filter state persists in the URL
@@ -103,15 +129,31 @@ so you can share an exact view with a colleague.
 
 ---
 
-## Security model
+## Hardware
+
+Any module running **Candlelight firmware** works plug-and-play on Windows:
+
+| Hardware | Price | Notes |
+|----------|-------|-------|
+| FYSETC UCAN (STM32F072) | ~$8 | Validated reference hardware |
+| CANable 1.0 (Candlelight firmware) | ~$15 | Widely available |
+| Any gs_usb / WinUSB compatible device | varies | Should work |
+
+**Also supported via python-can configuration:**
+- **slcan** - devices running slcan firmware (COM port)
+- **SocketCAN** - Linux, Raspberry Pi, WSL2
+- **PEAK PCAN-USB, Kvaser** - via python-can config, no code changes needed
+- **Virtual bus** - software loopback, no hardware needed
+
+---
+
+## Security Model
 
 CANviz does not use WebUSB or any browser-level hardware access API.
 
-The architecture is:
-
 ```
 Browser  (your local browser tab)
-    ↕  HTTP + WebSocket : localhost only, never leaves your machine
+    ↕  HTTP + WebSocket - localhost only, never leaves your machine
 Python backend  (127.0.0.1:8080)
     ↕  python-can
 USB CAN adapter
@@ -121,107 +163,20 @@ CAN Bus
 
 The browser communicates only with a local Python process at `127.0.0.1:8080`.
 No data leaves your machine. No cloud. No telemetry. No external connections of any kind.
-All USB communication happens inside the Python backend, the browser never has
+All USB communication happens inside the Python backend - the browser never has
 direct access to your USB device or CAN bus.
 
 The security model is the same as running any locally installed Python tool:
-you are trusting the code you installed via `pip`, the same trust you extend to
-any local development tool. If you are security-conscious, you are encouraged to
+you are trusting the code you installed via `pip`. If you are security-conscious,
 review the source on GitHub before installing.
 
-**Remote deployments:** If you are running CANviz on a remote machine (e.g. a
-Raspberry Pi on a shared network), use the default `--host 127.0.0.1` binding and
-access it via SSH port forwarding. Do not expose port 8080 to an untrusted network
-without additional controls such as a reverse proxy with authentication.
-
----
-
-## Hardware
-
-### Plug and play on Windows
-
-Any module running **Candlelight firmware** (most cheap CAN USB modules ship with this):
-
-| Hardware | Price | Notes |
-|----------|-------|-------|
-| FYSETC UCAN (STM32F072) | ~$8 | Validated reference hardware |
-| CANable 1.0 (Candlelight firmware) | ~$15 | Widely available |
-| Any gs_usb / WinUSB compatible device | varies | Should work |
-
-These appear in Windows Device Manager as `gs_usb / WinUSB` : **no COM port,
-no driver install, no reflashing needed.**
-
-> **If your device shows a COM port** in Device Manager, it is running slcan firmware.
-> Use `--interface slcan --channel COM3` instead.
-
-### Also supported
-
-- **slcan** : devices running slcan firmware (COM port)
-- **SocketCAN** : Linux, Raspberry Pi, WSL2
-- **PEAK PCAN-USB, Kvaser** : via python-can config, no code changes
-- **Virtual bus** : software loopback, no hardware needed
-
----
-
-## Quick Start
-
-### Windows : gs_usb (Candlelight firmware)
-
-```bash
-pip install canviz
-canviz
-```
-
-Auto-detects your connected device. Browser opens automatically.
-
-### Windows : slcan / COM port
-
-```bash
-pip install canviz
-canviz --interface slcan --channel COM3 --bitrate 500000
-```
-
-### Raspberry Pi / Linux
-
-```bash
-sudo ip link set can0 up type can bitrate 500000
-pip install canviz
-canviz --interface socketcan --channel can0
-```
-
-### Remote machine over SSH
-
-```bash
-# On your laptop : forward port 8080 from the remote machine
-ssh -L 8080:localhost:8080 user@remote-ip
-
-# On the remote machine
-canviz --interface socketcan --channel can0
-
-# Open in your local browser
-http://localhost:8080
-```
-
-### Headless / no browser
-
-```bash
-canviz --headless
-# Or with the serve subcommand:
-canviz serve --headless --port 8080
-```
-
-### No hardware : virtual bus
-
-```bash
-pip install canviz
-canviz --interface virtual
-```
+**Remote deployments:** Use the default `--host 127.0.0.1` binding and access via
+SSH port forwarding. Do not expose port 8080 to an untrusted network without additional
+controls such as a reverse proxy with authentication.
 
 ---
 
 ## CLI Reference
-
-### Server mode (default)
 
 ```
 canviz [OPTIONS]
@@ -234,22 +189,23 @@ canviz [OPTIONS]
   --headless    Start without opening a browser
 ```
 
-### Subcommands
-
+**Subcommands:**
 ```bash
-# Live terminal monitor (works over SSH)
+# Live terminal monitor - works over SSH
 canviz monitor --interface socketcan --channel can0 --dbc vehicle.dbc
 
-# Capture to file
+# Capture frames to file
 canviz capture --output trace.json --duration 60
 
 # Decode a captured log
 canviz decode --input trace.json --dbc vehicle.dbc --output decoded.csv
 
-# API-only server (no browser)
+# API-only server, no browser
 canviz serve --headless --port 8080
 ```
-See the **[CLI Guide](docs/cli.md)** for `monitor`, `capture`, `decode`, and SSH workflows.
+
+See the **[CLI Guide](docs/cli.md)** for full SSH workflow documentation.
+
 ---
 
 ## REST API & WebSocket
@@ -284,7 +240,7 @@ Full interactive docs at `http://localhost:8080/docs` while running.
     ↓
 [Python Backend]
   FastAPI · python-can · cantools · aiofiles · typer · rich
-    ↓  HTTP + WebSocket (localhost only : no external connections)
+    ↓  HTTP + WebSocket (localhost only - no external connections)
 [Browser UI]
   React 18 · TanStack Table · TanStack Virtual · Zustand · uPlot
     ↓
@@ -301,7 +257,7 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 | FYSETC UCAN (STM32F072, Candlelight) | gs_usb | Raspberry Pi OS | ✅ Tested |
 | Virtual bus | virtual | Windows / Linux | ✅ Tested |
 | PEAK PCAN-USB | pcan | Windows / Linux | ✅ Tested |
-| Kvaser | kvaser | Windows / Linux | Blocked, see Known Limitations |
+| Kvaser | kvaser | Windows / Linux | Blocked - see Known Limitations |
 
 **Throughput:** 2,000 fps sustained - zero frame loss, stable UI, no memory growth.
 
@@ -309,35 +265,34 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 
 ## Known Limitations
 
-- **USB timestamp jitter ~1 ms** : a hardware limitation of USB-connected CAN adapters.
+- **USB timestamp jitter ~1 ms** - a hardware limitation of USB-connected CAN adapters.
   Not suitable for sub-millisecond timing analysis.
-- **Bus load above 2,000 fps** : untested. A server-side throttling hook is built in
+- **Bus load above 2,000 fps** - untested. A server-side throttling hook is built in
   and can be enabled if needed.
-- **CAN FD** : frames with >8 byte payloads display as raw hex. Full CAN FD UI
+- **CAN FD** - frames with >8 byte payloads display as raw hex. Full CAN FD UI
   support is in progress.
-- **Kvaser on Windows** : CANviz has full UI support for Kvaser hardware (interface
-  dropdown, device index selector). However, connecting fails due to multiple
-  `canIoCtlInit` calls returning `canERR_PARAM (-1)` in python-can 4.6.1 on Windows.
-  This is a python-can bug, tracked at
+- **Kvaser on Windows** - CANviz has full UI support for Kvaser hardware. However,
+  connecting fails due to multiple `canIoCtlInit` calls returning `canERR_PARAM (-1)`
+  in python-can 4.6.1 on Windows. This is a python-can bug tracked at
   [python-can #2051](https://github.com/hardbyte/python-can/issues/2051). No CANviz
   code change is needed - once the upstream fix releases, upgrade python-can and
-  Kvaser will work without any changes on your end.
-- **slcan error frames** : slcan firmware on most adapters silently drops error frames
+  Kvaser will work without any other changes.
+- **slcan error frames** - slcan firmware on most adapters silently drops error frames
   before forwarding to the host. Bus error statistics will read 0% on slcan interfaces
   even on a degraded bus. Use gs_usb (Candlelight) for accurate error visibility.
-- **Replay timing** : depends on the Python asyncio scheduler, not a wall clock.
-- **Browser support** : tested on Chrome. Firefox and Edge are best-effort.
-- **Mobile layout** : not a target for v1. Optimised for 1080p and above.
+- **Replay timing** - depends on the Python asyncio scheduler, not a wall clock.
+- **Browser support** - tested on Chrome. Firefox and Edge are best-effort.
+- **Mobile layout** - not a target for v1. Optimised for 1080p and above.
 
 ---
 
 ## Roadmap
 
-- [x] **v1** : Live frame table, DBC decode, filter, send, record, replay, pip install
-- [x] **v2** : Signal plotting, multi-signal overlay, threshold alerts, CLI mode,
+- [x] **v1** - Live frame table, DBC decode, filter, send, record, replay, pip install
+- [x] **v2** - Signal plotting, multi-signal overlay, threshold alerts, CLI mode,
               bus health statistics, multi-frame transmit with timers
-- [ ] **v3** : CAN FD UI, J1939 decoder, OBD-II over raw CAN, UDS diagnostics,
-              reverse engineering toolkit, plugin API
+- [ ] **v3** - CAN FD UI, J1939 decoder, OBD-II over raw CAN, UDS diagnostics,
+              CANopen (CiA 301 + CiA 402), reverse engineering toolkit, plugin API
 
 See the [full project board](https://github.com/users/Chanchaldhiman/projects/1/views/1)
 for live status.
@@ -347,31 +302,30 @@ for live status.
 ## Troubleshooting
 
 **`No matching distribution found for canviz` on Ubuntu/Linux**
-Use `pip3 install canviz` or `python3 -m pip install canviz`.
-CANviz requires Python 3.10+. Ubuntu 20.04 ships Python 3.8 : upgrade to 22.04+
-or install Python 3.10 separately.
+Use `pip3 install canviz` or `python3 -m pip install canviz`. CANviz requires Python 3.10+.
+Ubuntu 20.04 ships Python 3.8 - upgrade to 22.04+ or install Python 3.10 separately.
 
 **Kvaser device fails to connect (`canIoCtl failed - Error in parameter`)**
-This is a known bug in python-can 4.6.1, not a CANviz issue. Tracked at
+Known bug in python-can 4.6.1, not a CANviz issue. Tracked at
 [python-can #2051](https://github.com/hardbyte/python-can/issues/2051).
-No workaround is available until python-can releases a fix. Upgrade python-can
-once the issue is resolved and Kvaser will connect without any other changes.
- 
+Upgrade python-can once the issue is resolved and Kvaser will connect without any
+other changes.
+
 **PEAK PCAN-USB fails to connect**
 Ensure the [PEAK driver](https://www.peak-system.com/Drivers.523.0.html) is installed.
 Device Manager must show the device under **CAN-Hardware**, not as an unknown device.
 
 **Device shows a COM port on Windows**
-Your adapter is running slcan firmware, not Candlelight. Use:
-`canviz --interface slcan --channel COM3`
+Your adapter is running slcan firmware, not Candlelight.
+Use: `canviz --interface slcan --channel COM3`
 
 ---
 
 ## Contributing
 
 CANviz is actively developed. **The most useful contribution right now is testing
-hardware we have not tried** - a CANable 2.0, a PEAK PCAN-USB, anything on macOS,
-anything on a COM port. No code required. Open an issue and tell us what happened.
+hardware we have not tried** - a CANable 2.0, anything on macOS, anything on a COM
+port. No code required. Open an issue and tell us what happened.
 
 Bug reports, DBC files that decode incorrectly, and code contributions are all welcome.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get the dev environment running.
@@ -380,4 +334,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get the dev environment runnin
 
 ## License
 
-MIT : see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
