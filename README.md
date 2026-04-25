@@ -8,6 +8,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz?style=social)](https://github.com/Chanchaldhiman/CANviz)
 
+---
+![CANviz demo](docs/demo.gif)
+---
+## Why CANviz?
+ 
+Getting started with CAN bus analysis usually means one of two things:
+ 
+- **Expensive commercial tools** : PEAK, Kvaser, Vector hardware bundles cost hundreds to thousands of dollars, and the software is tied to their ecosystem
+- **Complex open source setups** : compiling from source, installing native desktop apps, managing dependencies
+CANviz takes a different approach. It is a `pip install` away, runs entirely in your browser, and works with cheap commodity hardware that costs less than a meal.
+ 
 ```bash
 pip install canviz
 canviz
