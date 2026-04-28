@@ -52,6 +52,12 @@ class BusManager:
         self._open_channel: str = ""
         self._open_bitrate: int = 0
         self._open_index: int = 0
+        self._open_serial_baudrate: int = 0  
+        # Whether the hardware echoes sent frames back through recv() automatically.
+        # gs_usb (Candlelight) and virtual do. slcan and seeedstudio do not.
+        # When False, send() manually dispatches the frame through callbacks
+        # so sent frames appear in the UI message table.
+        self._echoes_sent_frames: bool = False
 
     @property
     def connected(self) -> bool:
@@ -74,6 +80,7 @@ class BusManager:
         channel: str = "",
         bitrate: int = 500_000,
         index: int = 0,
+        serial_baudrate: int = 115200,
     ) -> None:
         if self._connected:
             await self.disconnect()
@@ -88,6 +95,7 @@ class BusManager:
             and self._open_channel == channel
             and self._open_bitrate == bitrate
             and self._open_index == index
+            and self._open_serial_baudrate == serial_baudrate
         )
 
         if settings_match:
@@ -101,7 +109,8 @@ class BusManager:
                 await self._hard_shutdown()
 
             try:
-                self._bus = _open_bus(interface, channel, bitrate, index)
+               
+                self._bus = _open_bus(interface, channel, bitrate, index, serial_baudrate)
             except Exception as exc:
                 self._error = str(exc)
                 log.error("Bus open failed: %s", exc)
@@ -111,6 +120,12 @@ class BusManager:
             self._open_channel   = channel
             self._open_bitrate   = bitrate
             self._open_index     = index
+            self._open_serial_baudrate = serial_baudrate 
+
+        # gs_usb (Candlelight) and virtual echo sent frames back through recv()
+        # automatically so they appear in the UI via the reader loop.
+        # slcan and seeedstudio do not — send() will echo them manually.
+        self._echoes_sent_frames = interface in ("gs_usb", "virtual")
 
         settings.interface = interface
         settings.channel   = channel
@@ -123,7 +138,9 @@ class BusManager:
             self._reader_loop(), name="can-reader"
         )
         log.info(
-            "Connected: interface=%s channel=%s bitrate=%d", interface, channel, bitrate
+            "Connected: interface=%s channel=%s bitrate=%d serial_baudrate=%d",
+            interface, channel, bitrate,
+            serial_baudrate if interface == "slcan" else 0,
         )
 
     async def disconnect(self) -> None:
@@ -179,9 +196,21 @@ class BusManager:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self._bus.send, msg)
 
+        # For interfaces that don't echo sent frames back through recv()
+        # (seeedstudio, slcan), manually dispatch the sent frame through the
+        # same callbacks the reader loop uses so it appears in the UI.
+        if not self._echoes_sent_frames:
+            msg.timestamp = time.monotonic() - self._open_time
+            for cb in list(self._frame_callbacks):
+                try:
+                    cb(msg)
+                except Exception as exc:
+                    log.warning("Frame callback error on tx echo: %s", exc)
+
     async def _reader_loop(self) -> None:
         log.debug("Reader loop started.")
         loop = asyncio.get_event_loop()
+        _consecutive_none = 0  # tracks silence for slcan diagnostic
 
         while self._connected and self._bus is not None:
             try:
@@ -194,8 +223,24 @@ class BusManager:
                 continue
 
             if msg is None:
+                _consecutive_none += 1
+                # After 5 s of silence on slcan, emit an actionable hint.
+                # Each loop iteration is ~0.1 s (recv timeout), so 50 = ~5 s.
+                if (
+                    _consecutive_none == 50
+                    and self._open_interface == "slcan"
+                ):
+                    log.warning(
+                        "slcan: no frames received in ~5 s. "
+                        "Check: (1) CAN bitrate matches the bus (%d bps), "
+                        "(2) serial baud rate matches adapter (current: %d). "
+                        "Common fix: try Serial Baud Rate = 2000000 in the UI.",
+                        self._open_bitrate,
+                        self._open_serial_baudrate,
+                    )
                 continue
 
+            _consecutive_none = 0
             msg.timestamp = time.monotonic() - self._open_time
 
             for cb in list(self._frame_callbacks):
@@ -279,6 +324,7 @@ def _open_bus(
     channel: str,
     bitrate: int,
     index: int,
+    serial_baudrate: int = 115200,
 ) -> can.BusABC:
     if interface == "gs_usb":
         _ensure_libusb()
@@ -287,7 +333,21 @@ def _open_bus(
     elif interface == "slcan":
         if not channel:
             raise ValueError("slcan requires a channel (e.g. COM3 or /dev/ttyACM0)")
-        return can.Bus(interface="slcan", channel=channel, bitrate=bitrate, ttyBaudrate=115200)
+        log.info(
+            "Opening slcan: channel=%s  CAN bitrate=%d bps  serial baud=%d",
+            channel, bitrate, serial_baudrate,
+        )
+        # (open) command is sent *inside* can.Bus().__init__(). The settle
+        # time must come AFTER the bus is constructed so the adapter has time
+        # to process that command before we start calling recv().
+        bus = can.Bus(
+            interface="slcan",
+            channel=channel,
+            bitrate=bitrate,
+            ttyBaudrate=serial_baudrate,
+        )
+        time.sleep(0.25)  # let adapter process O\r before first recv()
+        return bus
 
     elif interface == "socketcan":
         if not channel:
@@ -296,7 +356,7 @@ def _open_bus(
 
     elif interface == "virtual":
         return can.Bus(interface="virtual", channel="vcan0", receive_own_messages=True)
-    
+
     elif interface == "pcan":
         ch = channel if channel else "PCAN_USBBUS1"
         return can.Bus(interface="pcan", channel=ch, bitrate=bitrate)
@@ -304,21 +364,36 @@ def _open_bus(
     elif interface == "kvaser":
         return can.Bus(interface="kvaser", channel=index, bitrate=bitrate)
 
+    elif interface == "seeedstudio":
+        if not channel:
+            raise ValueError("seeedstudio requires a channel (e.g. COM8 or /dev/ttyUSB0)")
+        log.info("Opening seeedstudio USB-CAN: channel=%s  CAN bitrate=%d bps", channel, bitrate)
+        # Seeed Studio / GY USB-CAN Analyzer — binary 0xAA/0x55 framing protocol.
+        # No serial baud rate param — the protocol configures the device via an
+        # init frame, not by matching a serial baud rate. python-can handles this
+        # internally in the seeedstudio interface.
+        return can.Bus(interface="seeedstudio", channel=channel, bitrate=bitrate)
+
     else:
         raise ValueError(
-            f"Unknown interface: {interface!r}. Choose: gs_usb, slcan, socketcan, virtual, pcan, kvaser"
+            f"Unknown interface: {interface!r}. "
+            "Choose: gs_usb, slcan, socketcan, virtual, pcan, kvaser, seeedstudio"
         )
+
+
 def open_bus(
     interface: "InterfaceType",
     channel: str = "",
     bitrate: int = 500_000,
     index: int = 0,
+    serial_baudrate: int = 115200,  
 ) -> "can.BusABC":
     """
     Public wrapper around _open_bus().
     Used by CLI subcommands (monitor, capture) that bypass FastAPI entirely.
     """
-    return _open_bus(interface, channel, bitrate, index)
+    return _open_bus(interface, channel, bitrate, index, serial_baudrate)
+
 
 # Singleton
 bus_manager = BusManager()

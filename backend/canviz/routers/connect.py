@@ -34,6 +34,10 @@ async def connect(req: ConnectRequest):
         # python-can pcan wants channel as a string e.g. "PCAN_USBBUS1"
         index   = req.index
         channel = str(req.channel) if req.channel else "PCAN_USBBUS1"
+    elif req.interface in ("slcan", "seeedstudio"):
+        # Both are COM port devices — channel is the port string, no index needed
+        index   = req.index
+        channel = str(req.channel)
     else:
         index   = req.index
         channel = str(req.channel)
@@ -44,6 +48,7 @@ async def connect(req: ConnectRequest):
             channel=channel,
             bitrate=req.bitrate,
             index=index,
+            serial_baudrate=req.serial_baudrate, 
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

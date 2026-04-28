@@ -39,6 +39,7 @@ class ConnectRequest(BaseModel):
     channel: Union[str, int] = ""
     bitrate: int = 500_000
     index: int = 0
+    serial_baudrate: int = 2000000  # slcan only - USB-serial link speed, separate from CAN bitrate
 
 
 class SendFrameRequest(BaseModel):
