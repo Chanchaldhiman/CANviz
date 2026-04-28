@@ -24,9 +24,22 @@ async function request<T>(
 // ============================================================
 
 export function apiConnect(config: ConnectionConfig) {
+  // FIX: JSON.stringify(config) would send camelCase keys (serialBaudrate)
+  // but FastAPI's Pydantic model expects snake_case (serial_baudrate).
+  // Pydantic silently ignores unknown fields, so this was always falling
+  // back to the default 115200 regardless of what the UI selected.
+  // Map explicitly here so the backend receives the correct field name.
+  const body = {
+    interface:        config.interface,
+    channel:          config.channel ?? '',
+    bitrate:          config.bitrate,
+    index:            config.index ?? 0,
+    serial_baudrate:  config.serialBaudrate ?? 115200,
+  };
+
   return request<{ message: string }>('/connect', {
     method: 'POST',
-    body: JSON.stringify(config),
+    body: JSON.stringify(body),
   });
 }
 

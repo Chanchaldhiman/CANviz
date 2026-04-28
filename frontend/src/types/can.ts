@@ -49,13 +49,15 @@ export type ConnectionStatus =
   | 'error'
   | 'disconnecting';
 
-export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual' | 'pcan' | 'kvaser';
+export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual' | 'pcan' | 'kvaser' | 'seeedstudio';
 
 export interface ConnectionConfig {
   interface: InterfaceType;
-  channel?: string;   // slcan: COM port, e.g. "COM3"
-  index?: number;     // gs_usb: device index (default 0)
-  bitrate: number;    // bps: 125000 | 250000 | 500000 | 1000000
+  channel?: string;         // slcan: COM port e.g. "COM3" | socketcan: e.g. "can0"
+  index?: number;           // gs_usb / kvaser: device index (default 0)
+  bitrate: number;          // bps: 125000 | 250000 | 500000 | 1000000
+  serialBaudrate?: number;  // slcan only — USB-serial link speed, separate from CAN bitrate
+                            // Typical values: 115200 (default) | 2000000
 }
 
 export interface ConnectionState {

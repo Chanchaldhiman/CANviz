@@ -35,8 +35,10 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       config: {
         ...s.config,
         interface: iface,
-        channel: iface === 'slcan' ? (s.config.channel ?? 'COM3') : undefined,
-        index: iface === 'gs_usb' ? (s.config.index ?? 0) : undefined,
+        // Reset interface-specific fields when switching
+        channel:        (iface === 'slcan' || iface === 'seeedstudio') ? (s.config.channel ?? 'COM3') : undefined,
+        index:          (iface === 'gs_usb' || iface === 'kvaser') ? (s.config.index ?? 0) : undefined,
+        serialBaudrate: iface === 'slcan' ? (s.config.serialBaudrate ?? 2000000) : undefined,
       },
     })),
 

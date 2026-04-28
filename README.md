@@ -31,6 +31,32 @@ different approach: browser-first, pip-installable, and SSH-friendly for enginee
 working on remote and headless setups.
 
 ---
+## What's New
+ 
+### v0.2.3 
+ 
+**New hardware support**
+- Added **GY / Seeed Studio USB-CAN Analyzer** (`seeedstudio` interface) - the cheap
+  USB CAN adapter widely sold on Amazon and AliExpress using the `0xAA`/`0x55` binary
+  protocol. Select `USB-CAN Analyzer (GY/Seeed)` in the interface dropdown, enter your
+  COM port, and connect. No baud rate configuration needed.
+**slcan improvements**
+- Added **Serial Baud Rate** selector in the UI for slcan devices. The USB-serial link
+  speed is now configurable (up to 2000000) - previously hardcoded to
+  115200, which caused no frames to appear on newer slcan adapters that use 2000000.
+- Added `--serial-baudrate` flag to `canviz monitor` and `canviz capture` CLI subcommands.
+- Added 5-second no-frame warning in the backend log with actionable hints when slcan
+  is connected but silent.
+**Bug fixes**
+- Fixed `The serial module is not installed` error - `pyserial` is now a declared
+  dependency and installs automatically with `pip install canviz`.
+- Fixed sent frames not appearing in the message table on seeedstudio and slcan
+  interfaces. Previously only gs_usb (Candlelight) showed sent frames because it
+  echoes them back through hardware loopback. Non-loopback interfaces now echo sent
+  frames in software.
+- Fixed `AttributeError` on first connect (`self._open_serial_baudrate` not
+  initialised in `BusManager.__init__`).
+---
 
 ## Quick Start
 
