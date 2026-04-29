@@ -48,7 +48,6 @@ async def connect(req: ConnectRequest):
             channel=channel,
             bitrate=req.bitrate,
             index=index,
-            serial_baudrate=req.serial_baudrate, 
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

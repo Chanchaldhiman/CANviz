@@ -22,31 +22,25 @@ no driver setup, no account, no internet connection required. It runs entirely i
 your browser at `localhost` - whether you are an embedded engineer debugging an ECU,
 a researcher studying automotive protocols, or a hobbyist on your first CAN project.
 
-It is designed to complement the excellent tools that already exist.
-[SavvyCAN](https://github.com/collin80/SavvyCAN) is a mature native desktop analyzer
-with a strong community - if you prefer a native app with a long track record, it is
-an excellent choice. [python-can](https://github.com/hardbyte/python-can) is the library
+[python-can](https://github.com/hardbyte/python-can) is the library
 CANviz is built on and is invaluable for scripting and automation. CANviz takes a
 different approach: browser-first, pip-installable, and SSH-friendly for engineers
 working on remote and headless setups.
 
 ---
+## Which Interface Do I Use?
+
+Not sure which interface to select? Check [Device Guide](docs/interfaceguide.md)
+---
 ## What's New
  
-### v0.2.3 
+### v0.2.4 
  
 **New hardware support**
 - Added **GY / Seeed Studio USB-CAN Analyzer** (`seeedstudio` interface) - the cheap
   USB CAN adapter widely sold on Amazon and AliExpress using the `0xAA`/`0x55` binary
   protocol. Select `USB-CAN Analyzer (GY/Seeed)` in the interface dropdown, enter your
   COM port, and connect. No baud rate configuration needed.
-**slcan improvements**
-- Added **Serial Baud Rate** selector in the UI for slcan devices. The USB-serial link
-  speed is now configurable (up to 2000000) - previously hardcoded to
-  115200, which caused no frames to appear on newer slcan adapters that use 2000000.
-- Added `--serial-baudrate` flag to `canviz monitor` and `canviz capture` CLI subcommands.
-- Added 5-second no-frame warning in the backend log with actionable hints when slcan
-  is connected but silent.
 **Bug fixes**
 - Fixed `The serial module is not installed` error - `pyserial` is now a declared
   dependency and installs automatically with `pip install canviz`.
@@ -281,6 +275,8 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 |----------|-----------|-----|--------|
 | FYSETC UCAN (STM32F072, Candlelight) | gs_usb | Windows 11 | ✅ Tested |
 | FYSETC UCAN (STM32F072, Candlelight) | gs_usb | Raspberry Pi OS | ✅ Tested |
+| DSD TECH SH-C31A | gs_usb/slcan | Windows / Linux | ✅ Tested |
+| SEEEDStudio | GV/SEEED | Windows / Linux | ✅ Tested |
 | Virtual bus | virtual | Windows / Linux | ✅ Tested |
 | PEAK PCAN-USB | pcan | Windows / Linux | ✅ Tested |
 | Kvaser | kvaser | Windows / Linux | Blocked - see Known Limitations |

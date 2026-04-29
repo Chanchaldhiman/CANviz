@@ -9,15 +9,6 @@ const BITRATES = [
   { label: '1 Mbps',   value: 1000000 },
 ];
 
-const SERIAL_BAUDRATES = [
-  { label: '2000000 (default for most adapters)', value: 2000000 },
-  { label: '115200', value: 115200 },
-  { label: '57600',  value: 57600  },
-  { label: '38400',  value: 38400  },
-  { label: '19200',  value: 19200  },
-  { label: '9600',   value: 9600   },
-];
-
 const INTERFACES: { label: string; value: InterfaceType; hint: string }[] = [
   { value: 'gs_usb',      label: 'gs_usb (Candlelight)',        hint: 'FYSETC UCAN, CANable 2.0 Pro - no COM port' },
   { value: 'slcan',       label: 'slcan (COM port)',             hint: 'CANable slcan firmware - appears as COM3 etc.' },
@@ -96,24 +87,6 @@ export function ConnectionPanel() {
               disabled={isConnected || isBusy}
               onChange={(e) => setConfig({ channel: e.target.value })}
             />
-          </div>
-
-          <div className="field-group">
-            <label className="field-label">Serial Baud Rate</label>
-            <select
-              className="field-select"
-              value={config.serialBaudrate ?? 115200}
-              disabled={isConnected || isBusy}
-              onChange={(e) => setConfig({ serialBaudrate: parseInt(e.target.value) })}
-            >
-              {SERIAL_BAUDRATES.map((b) => (
-                <option key={b.value} value={b.value}>{b.label}</option>
-              ))}
-            </select>
-            <span style={styles.hint}>
-              USB-serial link speed - separate from CAN bitrate.
-              Try 2000000 if no frames appear at the default.
-            </span>
           </div>
         </>
       )}

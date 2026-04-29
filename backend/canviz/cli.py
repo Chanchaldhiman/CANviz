@@ -86,16 +86,7 @@ DbcOpt = Annotated[
     Optional[Path],
     typer.Option("--dbc", help="Path to a .dbc file for signal decoding"),
 ]
-# Adapters typically use 115200 (default) but some variants use 2000000.
-# This is the USB-serial link speed, separate from the CAN bus bitrate.
-SerialBaudrateOpt = Annotated[
-    int,
-    typer.Option(
-        "--serial-baudrate",
-        help="Serial port baud rate for slcan adapters (default: 115200). "
-             "Try 2000000 if no frames appear at the default.",
-    ),
-]
+
 
 
 # ── Root callback — invoked when no subcommand is given ──────────────────────
@@ -217,7 +208,6 @@ def monitor(
     index: IndexOpt = 0,
     bitrate: BitrateOpt = 500_000,
     dbc: DbcOpt = None,
-    serial_baudrate: SerialBaudrateOpt = 115200,  
     refresh_rate: Annotated[float, typer.Option("--refresh-rate", help="Table refresh rate in Hz")] = 4.0,
 ) -> None:
     """
@@ -250,7 +240,7 @@ def monitor(
 
     # Open the bus directly — no FastAPI involved
     try:
-        bus = open_bus(interface, channel, bitrate, index, serial_baudrate)
+        bus = open_bus(interface, channel, bitrate, index)
     except Exception as exc:
         console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
         raise typer.Exit(code=1)
@@ -259,7 +249,6 @@ def monitor(
         console.print(f"  [bold green]Monitoring[/] {interface}"
                       + (f" {channel}" if channel else "")
                       + f" @ {bitrate} bps"
-                      + (f"  serial baud={serial_baudrate}" if interface == "slcan" else "")
                       + " — [dim]Ctrl+C to stop[/]\n")
 
     # State per message ID
@@ -337,7 +326,6 @@ def monitor(
                         err_console.print(
                             f"\n  [yellow]Warning:[/] slcan: no frames in ~5 s. "
                             f"Check CAN bitrate ({bitrate} bps) matches the bus, "
-                            f"and serial baud rate ({serial_baudrate}) matches the adapter. "
                             f"Try --serial-baudrate 2000000 if needed."
                         )
             except Exception as exc:
@@ -434,8 +422,7 @@ def capture(
     interface: InterfaceOpt = "gs_usb",
     channel: ChannelOpt = "",
     index: IndexOpt = 0,
-    bitrate: BitrateOpt = 500_000,
-    serial_baudrate: SerialBaudrateOpt = 115200,  
+    bitrate: BitrateOpt = 500_000, 
     output: Annotated[
         Optional[Path],
         typer.Option("--output", "-o", help="Output file path (default: canviz_YYYYMMDD_HHMMSS.json)"),
@@ -461,7 +448,7 @@ def capture(
         output = Path(f"canviz_{ts}.json")
 
     try:
-        bus = open_bus(interface, channel, bitrate, index, serial_baudrate)
+        bus = open_bus(interface, channel, bitrate, index,)
     except Exception as exc:
         console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
         raise typer.Exit(code=1)
@@ -469,8 +456,6 @@ def capture(
     console.print(f"  [bold green]Capturing[/] → [cyan]{output}[/]", end="")
     if duration:
         console.print(f"  (max [cyan]{duration}s[/])", end="")
-    if interface == "slcan":
-        console.print(f"  [dim]serial baud={serial_baudrate}[/]", end="")
     console.print("  — [dim]Ctrl+C to stop[/]")
 
     frames: list[dict] = []
@@ -489,7 +474,6 @@ def capture(
                         err_console.print(
                             f"\n  [yellow]Warning:[/] slcan: no frames in ~5 s. "
                             f"Check CAN bitrate ({bitrate} bps) matches the bus, "
-                            f"and serial baud rate ({serial_baudrate}) matches the adapter. "
                             f"Try --serial-baudrate 2000000 if needed."
                         )
                     continue

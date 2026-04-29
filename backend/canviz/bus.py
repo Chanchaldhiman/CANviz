@@ -80,7 +80,6 @@ class BusManager:
         channel: str = "",
         bitrate: int = 500_000,
         index: int = 0,
-        serial_baudrate: int = 115200,
     ) -> None:
         if self._connected:
             await self.disconnect()
@@ -95,7 +94,6 @@ class BusManager:
             and self._open_channel == channel
             and self._open_bitrate == bitrate
             and self._open_index == index
-            and self._open_serial_baudrate == serial_baudrate
         )
 
         if settings_match:
@@ -110,7 +108,7 @@ class BusManager:
 
             try:
                
-                self._bus = _open_bus(interface, channel, bitrate, index, serial_baudrate)
+                self._bus = _open_bus(interface, channel, bitrate, index,)
             except Exception as exc:
                 self._error = str(exc)
                 log.error("Bus open failed: %s", exc)
@@ -120,7 +118,6 @@ class BusManager:
             self._open_channel   = channel
             self._open_bitrate   = bitrate
             self._open_index     = index
-            self._open_serial_baudrate = serial_baudrate 
 
         # gs_usb (Candlelight) and virtual echo sent frames back through recv()
         # automatically so they appear in the UI via the reader loop.
@@ -140,7 +137,6 @@ class BusManager:
         log.info(
             "Connected: interface=%s channel=%s bitrate=%d serial_baudrate=%d",
             interface, channel, bitrate,
-            serial_baudrate if interface == "slcan" else 0,
         )
 
     async def disconnect(self) -> None:

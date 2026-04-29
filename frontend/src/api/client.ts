@@ -34,7 +34,6 @@ export function apiConnect(config: ConnectionConfig) {
     channel:          config.channel ?? '',
     bitrate:          config.bitrate,
     index:            config.index ?? 0,
-    serial_baudrate:  config.serialBaudrate ?? 115200,
   };
 
   return request<{ message: string }>('/connect', {
