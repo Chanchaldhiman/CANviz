@@ -29,9 +29,10 @@ working on remote and headless setups.
 
 ---
 ## Which Interface Do I Use?
-
 Not sure which interface to select? Check [Device Guide](docs/interfaceguide.md)
+
 ---
+
 ## What's New
  
 ### v0.2.4 

@@ -29,8 +29,8 @@ working on remote and headless setups.
 
 ---
 ## Which Interface Do I Use?
-
 Not sure which interface to select? Check [Device Guide](https://github.com/Chanchaldhiman/CANviz/blob/main/docs/interfaceguide.md)
+
 ---
 ## What's New
  
