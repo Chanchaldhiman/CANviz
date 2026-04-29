@@ -2,6 +2,7 @@
 
 **A browser-based CAN bus analyzer. Plug in. One command. Analyze.**
 
+[![CI](https://github.com/Chanchaldhiman/CANviz/actions/workflows/ci.yml/badge.svg)](https://github.com/Chanchaldhiman/CANviz/actions)
 [![PyPI version](https://img.shields.io/pypi/v/canviz.svg)](https://pypi.org/project/canviz/)
 [![Total Downloads](https://img.shields.io/pepy/dt/canviz?label=total%20downloads)](https://pepy.tech/project/canviz)
 [![Monthly Downloads](https://static.pepy.tech/badge/canviz/month)](https://pepy.tech/project/canviz)
@@ -352,6 +353,15 @@ port. No code required. Open an issue and tell us what happened.
 
 Bug reports, DBC files that decode incorrectly, and code contributions are all welcome.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get the dev environment running.
+
+---
+
+## Support
+
+CANviz is free and open source. If it saves you time or helps your project,
+consider [sponsoring development on GitHub](https://github.com/sponsors/Chanchaldhiman).
+
+Every sponsorship directly funds hardware for testing new adapters and protocols.
 
 ---
 
