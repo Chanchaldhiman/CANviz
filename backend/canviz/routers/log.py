@@ -14,8 +14,6 @@ is never blocked by disk I/O.
 from __future__ import annotations
 
 import asyncio
-import csv
-import io
 import logging
 import time
 from pathlib import Path

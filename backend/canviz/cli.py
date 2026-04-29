@@ -44,8 +44,8 @@ from rich.table import Table
 from rich.text import Text
 from typing_extensions import Annotated
 
-from canviz.bus import open_bus  # public alias added in bus.py (see bus_patch.py)
-from canviz.config import settings, InterfaceType
+from canviz.bus import open_bus  
+from canviz.config import settings
 
 
 # ── Typer app ────────────────────────────────────────────────────────────────
