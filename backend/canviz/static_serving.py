@@ -42,8 +42,8 @@ def mount_frontend(app: FastAPI) -> None:
         from canviz.static_serving import mount_frontend
         mount_frontend(app)
     """
-    if not STATIC_DIR.exists():
-        # Static dir missing — probably running in dev mode without a build.
+    if not STATIC_DIR.exists() or not (STATIC_DIR / "assets").exists():
+        # Static dir missing, probably running in dev mode without a build.
         # Dev users hit http://localhost:5173 (Vite) directly instead.
         return
 
