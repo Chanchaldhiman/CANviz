@@ -11,12 +11,11 @@ const rateBuckets = new Map<number, number[]>();
 
 function calcRate(id: number, nowMs: number): number {
   const bucket = rateBuckets.get(id) ?? [];
-  // Keep only timestamps within the window
   const cutoff = nowMs - RATE_WINDOW_MS;
   const trimmed = bucket.filter((t) => t > cutoff);
   trimmed.push(nowMs);
   rateBuckets.set(id, trimmed);
-  return trimmed.length; // frames in last second
+  return trimmed.length;
 }
 
 function toHex(id: number, extended: boolean): string {
@@ -44,21 +43,13 @@ function parseIdFilter(text: string): { min?: number; max?: number } {
 }
 
 interface FrameStore {
-  // Raw frame map keyed by CAN ID (always numeric)
   frames: Map<number, FrameRow>;
-
-  // Derived sorted array (updated on every ingest)
   frameList: FrameRow[];
-
-  // Stats
   totalFramesReceived: number;
-  framesPerSecond: number;      // overall bus fps
-  _fpsTicker: number[];         // timestamps for overall fps
-
-  // Filter
+  framesPerSecond: number;
+  _fpsTicker: number[];
   filter: FilterState;
 
-  // Actions
   ingestFrame: (frame: CanFrame) => void;
   clearFrames: () => void;
   setFilter: (patch: Partial<FilterState>) => void;
@@ -80,12 +71,10 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
     const nowMs = Date.now();
     const store = get();
 
-    // Normalise id: backend sends hex string "0x1a2" or int - always store as number
     const numericId = typeof frame.id === 'string'
       ? parseInt(frame.id, 16)
       : frame.id;
 
-    // Normalise signals key: backend uses "signals", type also accepts "decoded_signals"
     const signals = frame.signals ?? frame.decoded_signals;
 
     // Overall fps
@@ -93,26 +82,25 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
     const fpsTicker = [...store._fpsTicker.filter((t) => t > cutoff), nowMs];
     const framesPerSecond = fpsTicker.length;
 
-    // Per-ID rate
     const rate = calcRate(numericId, nowMs);
 
     const existing = store.frames.get(numericId);
     const updated: FrameRow = {
-      id: numericId,
-      idHex: toHex(numericId, frame.is_extended_id),
-      dlc: frame.dlc,
-      data: frame.data,
-      dataHex: dataToHex(frame.data),
-      count: (existing?.count ?? 0) + 1,
+      id:             numericId,
+      idHex:          toHex(numericId, frame.is_extended_id),
+      dlc:            frame.dlc,
+      data:           frame.data,
+      dataHex:        dataToHex(frame.data),
+      count:          (existing?.count ?? 0) + 1,
       rate,
-      lastSeen: nowMs,
-      isExtended: frame.is_extended_id,
-      isFd: frame.is_fd,
-      flashKey: nowMs,
+      lastSeen:       nowMs,
+      isExtended:     frame.is_extended_id,
+      isFd:           frame.is_fd,
+      flashKey:       nowMs,
       decodedSignals: signals,
+      j1939:          frame.j1939,   // ← carry J1939 decode through to the table row
     };
 
-    // Feed decoded signals into the plot store
     if (signals?.length) {
       const tSec = nowMs / 1000;
       addSignalValues(signals, tSec);
@@ -121,13 +109,9 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
     const frames = new Map(store.frames);
     frames.set(numericId, updated);
 
-    // Sort by ID ascending
     const frameList = Array.from(frames.values()).sort((a, b) => a.id - b.id);
+    const filteredList = applyFilter(frameList, store.filter);
 
-    // Apply current filter
-    const { filter } = store;
-    const filteredList = applyFilter(frameList, filter);
-    
     set({
       frames,
       frameList: filteredList,
@@ -152,8 +136,6 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
   setFilter: (patch) => {
     const store = get();
     const filter: FilterState = { ...store.filter, ...patch };
-
-    // Recompute filter from existing frames
     const frameList = applyFilter(
       Array.from(store.frames.values()).sort((a, b) => a.id - b.id),
       filter,
@@ -165,7 +147,6 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
 function applyFilter(rows: FrameRow[], filter: FilterState): FrameRow[] {
   let result = rows;
 
-  // ID filter
   if (filter.idText.trim()) {
     const { min, max } = parseIdFilter(filter.idText);
     if (min !== undefined && max !== undefined) {
@@ -173,7 +154,6 @@ function applyFilter(rows: FrameRow[], filter: FilterState): FrameRow[] {
     }
   }
 
-  // Signal name filter
   if (filter.signalName.trim()) {
     const q = filter.signalName.toLowerCase();
     result = result.filter((r) =>

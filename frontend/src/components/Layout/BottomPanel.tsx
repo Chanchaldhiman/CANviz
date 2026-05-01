@@ -3,12 +3,15 @@ import { SendFramePanel } from '../SendFramePanel/SendFramePanel';
 import { LogControls } from '../LogControls/LogControls';
 import { ReplayPanel } from '../ReplayPanel/ReplayPanel';
 import { SignalPlot } from '../SignalPlot/SignalPlot';
+import { J1939Panel } from '../J1939Panel/J1939Panel';
+import { useJ1939Store } from '../../store/j1939Store';
 
 const TABS = [
   { id: 'send',   label: 'Send Frame' },
   { id: 'log',    label: 'Record' },
   { id: 'replay', label: 'Replay' },
   { id: 'plot',   label: 'Plot' },
+  { id: 'j1939',  label: 'J1939' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -27,13 +30,17 @@ function loadHeight(): number {
 }
 
 export function BottomPanel() {
-  const [activeTab, setActiveTab]   = useState<TabId>('send');
-  const [height, setHeight]         = useState<number>(loadHeight);
-  const [dragging, setDragging]     = useState(false);
-  const dragStartY  = useRef(0);
-  const dragStartH  = useRef(0);
+  const [activeTab, setActiveTab] = useState<TabId>('send');
+  const [height, setHeight]       = useState<number>(loadHeight);
+  const [dragging, setDragging]   = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartH = useRef(0);
 
-  // Apply height to the CSS custom property so the grid row updates
+  // Show amber dot on J1939 tab when traffic auto-detected but decoder is off
+  const j1939Detected = useJ1939Store((s) => s.autoDetected);
+  const j1939Mode     = useJ1939Store((s) => s.mode);
+  const showJ1939Dot  = j1939Detected && j1939Mode === 'off';
+
   useEffect(() => {
     document.documentElement.style.setProperty('--bottompanel-height', `${height}px`);
     try { localStorage.setItem(STORAGE_KEY, String(height)); } catch { /* ignore */ }
@@ -49,7 +56,6 @@ export function BottomPanel() {
   useEffect(() => {
     if (!dragging) return;
     const onMove = (e: MouseEvent) => {
-      // Dragging UP = panel grows (clientY decreases)
       const delta = dragStartY.current - e.clientY;
       setHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, dragStartH.current + delta)));
     };
@@ -66,7 +72,7 @@ export function BottomPanel() {
     <div className="app-bottom panel" style={styles.panel}>
       {/* Drag handle */}
       <div
-        style={{ ...styles.handle, cursor: dragging ? 'ns-resize' : 'ns-resize' }}
+        style={{ ...styles.handle, cursor: 'ns-resize' }}
         onMouseDown={onMouseDown}
         title="Drag to resize"
       >
@@ -80,8 +86,13 @@ export function BottomPanel() {
             key={tab.id}
             className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
+            style={{ position: 'relative' }}
           >
             {tab.label}
+            {/* Amber dot when J1939 traffic detected but decoder off */}
+            {tab.id === 'j1939' && showJ1939Dot && (
+              <span style={styles.tabDot} title="J1939 traffic detected — enable decoder" />
+            )}
           </button>
         ))}
       </div>
@@ -92,6 +103,7 @@ export function BottomPanel() {
         {activeTab === 'log'    && <LogControls />}
         {activeTab === 'replay' && <ReplayPanel />}
         {activeTab === 'plot'   && <SignalPlot />}
+        {activeTab === 'j1939'  && <J1939Panel />}
       </div>
     </div>
   );
@@ -128,5 +140,15 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     overflowY: 'auto',
     padding: '10px 14px',
+  },
+  tabDot: {
+    position: 'absolute',
+    top: 6,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: 'var(--accent-amber)',
+    boxShadow: '0 0 4px var(--accent-amber)',
   },
 };

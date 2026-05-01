@@ -23,7 +23,7 @@ from fastapi import WebSocket
 from starlette.websockets import WebSocketState
 
 from canviz.dbc_store import dbc_store
-
+from canviz.j1939_store import j1939_store
 from canviz.stats_store import stats
 
 log = logging.getLogger("canviz.ws")
@@ -35,31 +35,18 @@ _THROTTLE_QUEUE_DEPTH = 0
 class WSBroadcaster:
     def __init__(self) -> None:
         self._clients: list[WebSocket] = []
-        # Queue is created lazily in start() - NOT here.
-        # Reason: asyncio.Queue binds to the running event loop at creation time.
-        # In tests, pytest-asyncio creates a new loop per test function (STRICT
-        # mode). If the Queue were created in __init__ (module import time or
-        # first test's loop), every subsequent test would hit:
-        #   RuntimeError: <Queue ...> is bound to a different event loop
         self._queue: Optional[asyncio.Queue] = None
         self._broadcaster_task: Optional[asyncio.Task] = None
 
     # ── Lifecycle ────────────────────────────────────────────────────────────
 
     def start(self) -> None:
-        # Only create the queue if it does not already exist.
-        # Re-creating it on every connect() call would orphan the existing
-        # _broadcast_loop which is blocked on await self._queue.get() - the
-        # await holds a reference to the OLD queue object, so the loop would
-        # be stuck forever while new frames go into the unreachable new queue.
         if self._queue is None:
             self._queue = asyncio.Queue(maxsize=10_000)
         if self._broadcaster_task is None or self._broadcaster_task.done():
             self._broadcaster_task = asyncio.get_event_loop().create_task(
                 self._broadcast_loop(), name="ws-broadcaster")
             asyncio.get_event_loop().create_task(self._stats_loop(), name="ws-stats")
-
-            
 
     async def stop(self) -> None:
         if self._broadcaster_task:
@@ -72,7 +59,7 @@ class WSBroadcaster:
         self._queue = None
         self._clients.clear()
 
-    # ── Client management ─────────────────────────────────────────────────────
+    # ── Client management ────────────────────────────────────────────────────
 
     async def register(self, ws: WebSocket) -> None:
         await ws.accept()
@@ -86,10 +73,7 @@ class WSBroadcaster:
     def clear_queue(self) -> None:
         """
         Drain stale frames from the queue without replacing the queue object.
-        Call this after removing the frame callback on disconnect so that
-        reconnect starts with a clean slate and correct fps calculation.
-        Replacing the queue object would orphan the broadcast loop (it holds
-        a reference to the old Queue in its await), so we drain instead.
+        Call this after removing the frame callback on disconnect.
         """
         if self._queue is None:
             return
@@ -103,32 +87,37 @@ class WSBroadcaster:
         if drained:
             log.debug("Drained %d stale frames from broadcaster queue.", drained)
 
-    # ── Frame ingestion (called from BusManager callback - sync) ─────────────
+    # ── Frame ingestion (called from BusManager callback — sync) ─────────────
 
     def on_frame(self, msg) -> None:
         """
-        Sync callback - called from the bus reader thread.
+        Sync callback — called from the bus reader thread.
         Converts the python-can Message to a JSON-serialisable dict
         and puts it on the queue for the async broadcaster.
         """
         if self._queue is None:
-            return  # broadcaster stopped or not yet started
+            return
 
         # Drop error/status frames reported by Candlelight firmware.
-        # These are internal device notifications (error-passive, bus-off, etc.)
-        # that python-can surfaces as regular messages - they are never on the
-        # physical CAN bus wire and should not appear in the frame table.
         stats.on_frame(is_error=msg.is_error_frame, dlc=msg.dlc)
         if msg.is_error_frame:
             return
 
         if _THROTTLE_QUEUE_DEPTH and self._queue.qsize() >= _THROTTLE_QUEUE_DEPTH:
-            return  # drop frame
+            return
 
+        # DBC signal decode
         signals = dbc_store.decode(msg.arbitration_id, bytes(msg.data))
 
-        frame = {
-            "type": "frame",
+        # J1939 decode — runs regardless of DBC; enriches frame if mode is "on"
+        j1939_info = j1939_store.process_frame(
+            arb_id=msg.arbitration_id,
+            data=bytes(msg.data),
+            is_extended=msg.is_extended_id,
+        )
+
+        frame: dict = {
+            "type":           "frame",
             "id":             hex(msg.arbitration_id),
             "dlc":            msg.dlc,
             "data":           list(msg.data),
@@ -138,6 +127,9 @@ class WSBroadcaster:
             "channel":        0,
             "signals":        signals,
         }
+
+        if j1939_info is not None:
+            frame["j1939"] = j1939_info
 
         try:
             self._queue.put_nowait(frame)
@@ -169,12 +161,18 @@ class WSBroadcaster:
                 await self.unregister(ws)
 
     async def _stats_loop(self) -> None:
-        """Broadcast a stats snapshot to all connected clients every second."""
+        """Broadcast a stats + J1939 status snapshot every second."""
         while True:
             await asyncio.sleep(1)
             if not self._clients:
                 continue
-            payload = json.dumps(stats.snapshot())
+
+            # Merge stats and J1939 status into one payload
+            payload = json.dumps({
+                **stats.snapshot(),
+                **j1939_store.status_dict(),
+            })
+
             dead: list[WebSocket] = []
             for ws in list(self._clients):
                 try:

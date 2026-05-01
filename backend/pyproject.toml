@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "canviz"
-version = "0.2.4"
+version = "0.3.0"
 description = "Open-source browser-based CAN bus analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Chanchal Dhiman", email = "chanchalv.dhiman@gmail.com" }]
-keywords = ["CAN bus", "automotive", "analyzer", "cantools", "python-can"]
+keywords = ["CAN bus", "automotive", "analyzer", "cantools", "python-can", "J1939", "CANopen"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -29,18 +29,31 @@ dependencies = [
     "python-multipart>=0.0.9",
     "typer>=0.12",
     "pyserial>=3.0",
+    # J1939 PGN/SPN database - Apache 2.0, CSS Electronics (~100 KB)
+    # Provides ~1000+ PGN definitions. Falls back to built-in 52-PGN table if unavailable.
+    "pretty_j1939>=0.0.4",
 ]
 
 [project.urls]
-Homepage = "https://github.com/Chanchaldhiman/CANviz"
+Homepage   = "https://github.com/Chanchaldhiman/CANviz"
 Repository = "https://github.com/Chanchaldhiman/CANviz"
-Issues = "https://github.com/Chanchaldhiman/CANviz/issues"
-Changelog = "https://github.com/Chanchaldhiman/CANviz/releases"
+Issues     = "https://github.com/Chanchaldhiman/CANviz/issues"
+Changelog  = "https://github.com/Chanchaldhiman/CANviz/releases"
 
 [project.scripts]
 canviz = "canviz.cli:main"
 
 [project.optional-dependencies]
+# ISO-TP stack for OBD-II and UDS (Phase 5.3 / 5.4)
+uds = [
+    "can-isotp>=2.0",
+    "udsoncan>=1.21",
+]
+# Reverse-engineering toolkit - numpy/scipy (Phase 5.6)
+re = [
+    "numpy>=1.26",
+    "scipy>=1.13",
+]
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",

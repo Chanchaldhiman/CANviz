@@ -220,14 +220,14 @@ class BusManager:
 
             if msg is None:
                 _consecutive_none += 1
-                # After 5 s of silence on slcan, emit an actionable hint.
-                # Each loop iteration is ~0.1 s (recv timeout), so 50 = ~5 s.
+                # After 30 s of silence on slcan, emit an actionable hint.
+                # Each loop iteration is ~0.1 s (recv timeout), so 300 = ~30 s.
                 if (
-                    _consecutive_none == 50
+                    _consecutive_none == 300
                     and self._open_interface == "slcan"
                 ):
                     log.warning(
-                        "slcan: no frames received in ~5 s. "
+                        "slcan: no frames received in ~30 s. "
                         "Check: (1) CAN bitrate matches the bus (%d bps), "
                         "(2) serial baud rate matches adapter (current: %d). "
                         "Common fix: try Serial Baud Rate = 2000000 in the UI.",

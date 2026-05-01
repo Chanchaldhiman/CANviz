@@ -2,6 +2,36 @@
 // Core CAN types
 // ============================================================
 
+export interface J1939Info {
+  priority: number;
+  pgn: number;
+  pgn_hex: string;
+  pgn_name: string;
+  sa: number;
+  sa_hex: string;
+  sa_name: string;
+  da: number;
+  da_hex: string;
+  da_name: string;
+  is_broadcast: boolean;
+  is_bam_cm: boolean;
+  is_bam_dt: boolean;
+  bam_complete: {
+    pgn: number;
+    pgn_hex: string;
+    pgn_name: string;
+    data_hex: string;
+    length: number;
+  } | null;
+  dm1_faults: Array<{
+    spn: number;
+    fmi: number;
+    oc: number;
+    cm: number;
+    lamps: Record<string, string>;
+  }> | null;
+}
+
 export interface CanFrame {
   // Backend sends id as hex string e.g. "0x1a2" — normalised to number in frameStore
   id: string | number;
@@ -13,6 +43,7 @@ export interface CanFrame {
   // Backend key is "signals"; frameStore normalises to decoded_signals
   signals?: DecodedSignal[];
   decoded_signals?: DecodedSignal[];
+  j1939?: J1939Info;
 }
 
 export interface DecodedSignal {
@@ -36,6 +67,7 @@ export interface FrameRow {
   isFd: boolean;
   flashKey: number;         // bumped on every update, triggers flash
   decodedSignals?: DecodedSignal[];
+  j1939?: J1939Info;        // Present when J1939 mode is on and frame is extended
 }
 
 // ============================================================
@@ -56,7 +88,6 @@ export interface ConnectionConfig {
   channel?: string;         // slcan: COM port e.g. "COM3" | socketcan: e.g. "can0"
   index?: number;           // gs_usb / kvaser: device index (default 0)
   bitrate: number;          // bps: 125000 | 250000 | 500000 | 1000000
-                            // Typical values: 115200 (default) | 2000000
 }
 
 export interface ConnectionState {

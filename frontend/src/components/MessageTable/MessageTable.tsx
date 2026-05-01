@@ -7,21 +7,20 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useFrameStore } from '../../store/frameStore';
+import { useJ1939Store } from '../../store/j1939Store';
 import type { FrameRow, DecodedSignal } from '../../types/can';
 
-// How long the row flash lasts (must match CSS animation)
 const FLASH_DURATION_MS = 400;
+const ROW_HEIGHT = 30;
+const SIGNAL_ROW_HEIGHT = 18;
 
-// ============================================================
-// Flash tracker (outside React state to avoid re-renders)
-// ============================================================
+// ── Flash tracker ─────────────────────────────────────────────────────────────
 const flashTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
 function triggerFlash(el: HTMLElement, id: number) {
   if (flashTimers.has(id)) {
     clearTimeout(flashTimers.get(id));
     el.classList.remove('row-flash');
-    // Force reflow to restart animation
     void el.offsetHeight;
   }
   el.classList.add('row-flash');
@@ -32,9 +31,7 @@ function triggerFlash(el: HTMLElement, id: number) {
   flashTimers.set(id, t);
 }
 
-// ============================================================
-// Rate colorizer
-// ============================================================
+// ── Rate colorizer ────────────────────────────────────────────────────────────
 function rateColor(fps: number): string {
   if (fps === 0) return 'var(--text-muted)';
   if (fps < 10)  return 'var(--text-secondary)';
@@ -42,9 +39,7 @@ function rateColor(fps: number): string {
   return 'var(--accent-red)';
 }
 
-// ============================================================
-// Expanded signal sub-row
-// ============================================================
+// ── Signal sub-row ────────────────────────────────────────────────────────────
 function SignalRows({ signals }: { signals: DecodedSignal[] }) {
   return (
     <div style={styles.signalContainer}>
@@ -61,14 +56,12 @@ function SignalRows({ signals }: { signals: DecodedSignal[] }) {
   );
 }
 
-// ============================================================
-// Column definitions
-// ============================================================
-const columns: ColumnDef<FrameRow>[] = [
+// ── Base column definitions (always shown) ────────────────────────────────────
+const BASE_COLUMNS: ColumnDef<FrameRow>[] = [
   {
     id: 'expand',
     size: 24,
-    cell: () => null, // controlled externally via expandedRows state
+    cell: () => null,
   },
   {
     accessorKey: 'idHex',
@@ -139,15 +132,77 @@ const columns: ColumnDef<FrameRow>[] = [
   },
 ];
 
-// ============================================================
-// Main component
-// ============================================================
-const ROW_HEIGHT = 30;
-const SIGNAL_ROW_HEIGHT = 18;
+// ── J1939 column definitions (appended when decoder is on) ────────────────────
+const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
+  {
+    id: 'j1939_pgn',
+    header: 'PGN',
+    size: 70,
+    cell: ({ row }) => {
+      const j = row.original.j1939;
+      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      return (
+        <span className="mono" style={{ color: 'var(--accent-blue)', fontSize: 11 }}>
+          {j.pgn_hex}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'j1939_pgn_name',
+    header: 'PGN Name',
+    size: 180,
+    cell: ({ row }) => {
+      const j = row.original.j1939;
+      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      return (
+        <span style={styles.pgnName} title={j.pgn_name}>
+          {j.pgn_name}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'j1939_sa',
+    header: 'SA',
+    size: 80,
+    cell: ({ row }) => {
+      const j = row.original.j1939;
+      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      return (
+        <span title={j.sa_name} style={styles.saCell}>
+          <span className="mono" style={{ color: 'var(--accent-amber)', fontSize: 11 }}>
+            {j.sa_hex}
+          </span>
+          <span style={styles.saName}>{j.sa_name}</span>
+        </span>
+      );
+    },
+  },
+  {
+    id: 'j1939_da',
+    header: 'DA',
+    size: 60,
+    cell: ({ row }) => {
+      const j = row.original.j1939;
+      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      return (
+        <span className="mono" style={{
+          color: j.is_broadcast ? 'var(--text-muted)' : 'var(--text-secondary)',
+          fontSize: 11,
+        }}>
+          {j.is_broadcast ? 'BC' : j.da_hex}
+        </span>
+      );
+    },
+  },
+];
 
+// ── Main component ────────────────────────────────────────────────────────────
 export function MessageTable() {
-  const frameList = useFrameStore((s) => s.frameList);
+  const frameList   = useFrameStore((s) => s.frameList);
   const showDecoded = useFrameStore((s) => s.filter.showDecoded);
+  const j1939Mode   = useJ1939Store((s) => s.mode);
 
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
@@ -160,13 +215,9 @@ export function MessageTable() {
     });
   }, []);
 
-  // Refs to DOM rows for flash effect
-  const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-
-  // Track previous flashKey per row to detect updates
+  const rowRefs       = useRef<Map<number, HTMLDivElement>>(new Map());
   const prevFlashKeys = useRef<Map<number, number>>(new Map());
 
-  // Trigger flash on updated rows
   useEffect(() => {
     for (const row of frameList) {
       const prev = prevFlashKeys.current.get(row.id);
@@ -178,6 +229,14 @@ export function MessageTable() {
     }
   }, [frameList]);
 
+  // Append J1939 columns dynamically when the decoder is enabled
+  const columns = useMemo<ColumnDef<FrameRow>[]>(
+    () => j1939Mode === 'on'
+      ? [...BASE_COLUMNS, ...J1939_COLUMNS]
+      : BASE_COLUMNS,
+    [j1939Mode],
+  );
+
   const table = useReactTable({
     data: frameList,
     columns,
@@ -185,16 +244,13 @@ export function MessageTable() {
   });
 
   const { rows } = table.getRowModel();
-
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Build a flat list of items including signal sub-rows for virtualizer
   const flatItems = useMemo(() => {
     const items: Array<
       | { type: 'row'; row: typeof rows[0] }
       | { type: 'signals'; frameId: number; signals: DecodedSignal[] }
     > = [];
-
     for (const row of rows) {
       items.push({ type: 'row', row });
       const frameId = row.original.id;
@@ -226,7 +282,6 @@ export function MessageTable() {
       <div style={styles.header}>
         {table.getHeaderGroups().map((hg) => (
           <div key={hg.id} style={styles.headerRow}>
-            {/* Expand column */}
             <div style={{ ...styles.headerCell, width: 30, flexShrink: 0 }} />
             {hg.headers.slice(1).map((header) => (
               <div
@@ -317,7 +372,20 @@ export function MessageTable() {
 
                   {/* Badges */}
                   <div style={styles.badgeArea}>
-                    {frame.isExtended && <span className="badge badge-muted">EXT</span>}
+                    {frame.j1939?.is_bam_cm && (
+                      <span className="badge badge-blue" title="BAM Connection Management">BAM CM</span>
+                    )}
+                    {frame.j1939?.is_bam_dt && (
+                      <span className="badge badge-muted" title="BAM Data Transfer">BAM DT</span>
+                    )}
+                    {frame.j1939?.dm1_faults && frame.j1939.dm1_faults.length > 0 && (
+                      <span className="badge badge-red" title="Active Diagnostic Trouble Codes">
+                        DM1 ({frame.j1939.dm1_faults.length})
+                      </span>
+                    )}
+                    {frame.isExtended && !frame.j1939 && (
+                      <span className="badge badge-muted">EXT</span>
+                    )}
                     {frame.isFd && <span className="badge badge-blue">FD</span>}
                     {showDecoded && frame.decodedSignals?.length ? (
                       <span className="badge badge-green">DBC</span>
@@ -397,6 +465,29 @@ const styles: Record<string, React.CSSProperties> = {
   timeCell: {
     fontSize: 10,
     color: 'var(--text-muted)',
+  },
+  j1939Absent: {
+    color: 'var(--text-muted)',
+    fontSize: 12,
+  },
+  pgnName: {
+    fontSize: 11,
+    color: 'var(--text-secondary)',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: 'block',
+    maxWidth: 174,
+  },
+  saCell: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 1,
+  },
+  saName: {
+    fontSize: 9,
+    color: 'var(--text-muted)',
+    lineHeight: 1,
   },
   empty: {
     display: 'flex',

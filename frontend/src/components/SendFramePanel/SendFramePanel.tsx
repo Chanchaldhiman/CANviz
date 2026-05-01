@@ -42,7 +42,7 @@ export function SendFramePanel() {
         <span>CAN ID</span>
         <span>DLC</span>
         <span>Data (hex)</span>
-        <span style={{ textAlign: 'center' }}>EXT</span>
+        <span />
         <span>Interval</span>
         <span />
       </div>
@@ -90,15 +90,25 @@ export function SendFramePanel() {
               onChange={(e) => updateFrame(f.id, { data: e.target.value })}
             />
 
-            {/* Extended toggle */}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {/* Extended ID toggle- label sits under checkbox so it fits the narrow column */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <input
                 type="checkbox"
                 checked={f.isExtended}
                 onChange={(e) => updateFrame(f.id, { isExtended: e.target.checked })}
-                title="Extended 29-bit ID"
-                style={{ cursor: 'pointer', accentColor: 'var(--accent-green)' }}
+                title="29-bit extended ID- required for J1939 and some proprietary protocols. Standard CAN uses 11-bit."
+                style={{ cursor: 'pointer', accentColor: 'var(--accent-green)', margin: 0 }}
               />
+              <span style={{
+                fontSize: 8,
+                fontFamily: 'var(--font-mono)',
+                color: f.isExtended ? 'var(--accent-green)' : 'var(--text-muted)',
+                letterSpacing: '0.02em',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}>
+                29-bit
+              </span>
             </div>
 
             {/* Interval + rate label */}

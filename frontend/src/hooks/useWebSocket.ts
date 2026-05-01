@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useFrameStore } from '../store/frameStore';
 import { useStatsStore } from '../store/statsStore';
+import { useJ1939Store } from '../store/j1939Store';
 import type { CanFrame } from '../types/can';
 
 function getWsUrl(): string {
@@ -18,8 +19,9 @@ export function useWebSocket() {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
 
-  const ingestFrame = useFrameStore((s) => s.ingestFrame);
-  const updateStats = useStatsStore((s) => s.updateStats);
+  const ingestFrame      = useFrameStore((s) => s.ingestFrame);
+  const updateStats      = useStatsStore((s) => s.updateStats);
+  const updateJ1939Stats = useJ1939Store((s) => s.updateFromStats);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -34,10 +36,15 @@ export function useWebSocket() {
     ws.onmessage = (event: MessageEvent) => {
       try {
         const msg = JSON.parse(event.data as string);
+
         if (msg.type === 'stats') {
           updateStats(msg);
+          // J1939 status is piggy-backed on every stats payload
+          if (msg.j1939_mode !== undefined || msg.j1939_detected !== undefined) {
+            updateJ1939Stats(msg);
+          }
         } else {
-          // "frame" type, or legacy messages without a type field
+          // "frame" type — pass to frame store (includes optional j1939 field)
           ingestFrame(msg as CanFrame);
         }
       } catch {
@@ -60,7 +67,7 @@ export function useWebSocket() {
     ws.onerror = () => {
       // onclose handles reconnect
     };
-  }, [ingestFrame, updateStats]);
+  }, [ingestFrame, updateStats, updateJ1939Stats]);
 
   useEffect(() => {
     mountedRef.current = true;
