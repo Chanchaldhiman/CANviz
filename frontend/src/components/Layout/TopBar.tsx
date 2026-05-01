@@ -1,5 +1,6 @@
 import { useConnectionStore } from '../../store/connectionStore';
 import { useStatsStore } from '../../store/statsStore';
+import { useThemeStore } from '../../store/themeStore';
 
 const STATUS_LABELS: Record<string, string> = {
   idle:          'DISCONNECTED',
@@ -9,10 +10,38 @@ const STATUS_LABELS: Record<string, string> = {
   error:         'ERROR',
 };
 
+// Sun icon (light mode) and Moon icon (dark mode) as inline SVG
+function SunIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1"  x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22"  y1="4.22"  x2="5.64"  y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1"  y1="12" x2="3"  y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22"  y1="19.78" x2="5.64"  y2="18.36" />
+      <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 export function TopBar() {
   const status    = useConnectionStore((s) => s.status);
   const config    = useConnectionStore((s) => s.config);
   const stats     = useStatsStore((s) => s.stats);
+  const { theme, toggle } = useThemeStore();
 
   const statusLabel = STATUS_LABELS[status] ?? status.toUpperCase();
   const isLive      = status === 'connected';
@@ -74,7 +103,7 @@ export function TopBar() {
                 style={{
                   ...styles.statVal,
                   color: stats.error_frames > 0 && !isSlcan
-                    ? 'var(--accent-red, #f87171)'
+                    ? 'var(--accent-red)'
                     : 'var(--accent-green)',
                 }}
                 className="mono"
@@ -91,7 +120,7 @@ export function TopBar() {
             {stats.bus_off_events > 0 && (
               <>
                 <div style={styles.stat} title="Bus-off: the CAN controller has shut down TX due to excessive errors">
-                  <span style={{ ...styles.statVal, color: 'var(--accent-red, #f87171)' }} className="mono">
+                  <span style={{ ...styles.statVal, color: 'var(--accent-red)' }} className="mono">
                     {stats.bus_off_events}
                   </span>
                   <span style={styles.statUnit}>bus-off</span>
@@ -107,6 +136,18 @@ export function TopBar() {
           <span className={`status-dot ${status}`} />
           <span style={styles.statusText}>{statusLabel}</span>
         </div>
+
+        <Divider />
+
+        {/* Theme toggle */}
+        <button
+          className="theme-toggle"
+          onClick={toggle}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
       </div>
     </div>
   );
@@ -126,7 +167,7 @@ function StatCell({
       <span
         style={{
           ...styles.statVal,
-          color: highlight ? 'var(--accent-amber, #fbbf24)' : 'var(--accent-green)',
+          color: highlight ? 'var(--accent-amber)' : 'var(--accent-green)',
         }}
         className="mono"
       >

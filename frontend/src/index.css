@@ -1,5 +1,7 @@
 /* ============================================================
-   CANviz Design System - Industrial Dark Theme
+   CANviz Design System
+   Dark theme: :root (default) - Industrial dark with green accents
+   Light theme: [data-theme="light"] override
    ============================================================ */
 
 :root {
@@ -43,8 +45,8 @@
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
 
   /* Sizing */
-  --sidebar-width:     280px;
-  --topbar-height:     44px;
+  --sidebar-width:      280px;
+  --topbar-height:      44px;
   --bottompanel-height: 320px;
   --radius-sm: 3px;
   --radius-md: 5px;
@@ -53,6 +55,58 @@
   /* Transitions */
   --transition-fast: 80ms ease;
   --transition-base: 150ms ease;
+
+  /* uPlot canvas tokens (read by getPlotTheme() in SignalPlot) */
+  --plot-axis:   #7a8494;
+  --plot-grid:   #1c2028;
+  --plot-bg:     #13161a;
+}
+
+/* ============================================================
+   Light theme overrides
+   Applied when <html data-theme="light">
+   ============================================================ */
+
+[data-theme="light"] {
+  /* Backgrounds — warm white base, clear elevation steps */
+  --bg-base:      #eef2f7;
+  --bg-panel:     #ffffff;
+  --bg-elevated:  #f4f7fb;
+  --bg-hover:     #e8edf5;
+  --bg-active:    #dde4ef;
+
+  /* Borders — clearly visible without being harsh */
+  --border-subtle:  #d4dae6;
+  --border-default: #b8c2d4;
+  --border-strong:  #8d9bb4;
+
+  /* Text — very high contrast primary, readable secondaries */
+  --text-primary:   #0f1824;
+  --text-secondary: #3a4a62;
+  --text-muted:     #7a8fab;
+  --text-inverse:   #ffffff;
+
+  /* Accents — slightly deeper green for legibility on white */
+  --accent-green:       #009e5a;
+  --accent-green-dim:   rgba(0, 158, 90, 0.10);
+  --accent-green-glow:  rgba(0, 158, 90, 0.22);
+  --accent-amber:       #c47d00;
+  --accent-amber-dim:   rgba(196, 125, 0, 0.10);
+  --accent-red:         #c8001a;
+  --accent-red-dim:     rgba(200, 0, 26, 0.10);
+  --accent-blue:        #1a5fd4;
+  --accent-blue-dim:    rgba(26, 95, 212, 0.10);
+
+  /* Status */
+  --status-idle:        #8d9bb4;
+  --status-connecting:  #c47d00;
+  --status-connected:   #009e5a;
+  --status-error:       #c8001a;
+
+  /* uPlot canvas tokens */
+  --plot-axis:   #3a4a62;
+  --plot-grid:   #d4dae6;
+  --plot-bg:     #f4f7fb;
 }
 
 /* ============================================================
@@ -78,6 +132,10 @@ body {
   background: var(--bg-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
 }
 
 /* ============================================================
@@ -239,7 +297,7 @@ body {
   border-color: var(--accent-green);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #00f090;
+  filter: brightness(1.08);
   box-shadow: 0 0 12px var(--accent-green-glow);
 }
 
@@ -287,6 +345,33 @@ body {
 .btn-row {
   display: flex;
   gap: 6px;
+}
+
+/* ============================================================
+   Theme toggle button
+   ============================================================ */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 /* ============================================================
