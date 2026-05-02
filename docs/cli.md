@@ -18,8 +18,10 @@ CANviz has two modes of operation:
 | `canviz` | Start the web server and open the browser (default) |
 | `canviz serve --headless` | Start the API + WebSocket only - no browser opens |
 | `canviz monitor` | Live frame table in the terminal |
+| `canviz monitor --j1939` | Live frame table with PGN and SA columns for J1939 traffic |
 | `canviz capture` | Record frames to a JSON file |
 | `canviz decode` | Apply DBC signal decode to a captured file |
+| `canviz j1939 status` | Show J1939 nodes, BAM log, and active faults from a running server |
 
 ---
 
@@ -114,7 +116,26 @@ Signal names from the DBC appear in the `Name` column. Message IDs not in the DB
 | Flag | Default | Description |
 |---|---|---|
 | `--dbc` | _(none)_ | Path to a `.dbc` file for signal name lookup |
+| `--j1939` | off | Enable J1939 decode - adds PGN and SA columns. Use 250 kbps for trucks/agriculture. |
 | `--refresh-rate` | `4.0` | Table refresh rate in Hz |
+
+**J1939 mode:**
+
+```
+canviz monitor --interface slcan --channel COM3 --bitrate 250000 --j1939
+```
+
+Adds **PGN** and **SA** (Source Address) columns to the live table. Each row shows the Parameter Group Number, its human-readable name, and the ECU that sent it. Works standalone over SSH - no browser or server needed.
+
+```
+  Monitoring slcan COM3 @ 250000 bps [J1939] - Ctrl+C to stop
+
+ ID (hex)    Name   PGN       PGN Name                       SA                DLC   Data                      Count
+ ─────────── ────── ───────── ────────────────────────────── ───────────────── ───── ──────────────────────────────
+ 18F00400    -      0xF004    EEC1 - Engine Speed / Torque   0x00 Engine #1    8     F0 4F 4F FB 14 FF F0 FF   2,277
+ 18FEF100    -      0xFEF1    CCVS - Cruise Control / Ve…    0x00 Engine #1    8     F1 1C 5D FF FF FF FF FF     459
+ 18FECA00    -      0xFECA    DM1 - Active Diagnostic Tr…    0x00 Engine #1    8     04 00 64 00 08 06 FF FF       5
+```
 
 **Pipe mode (non-TTY):**
 
@@ -128,7 +149,29 @@ canviz monitor --interface virtual | grep "000001A4"
 {"ts": 1.244891, "id": "000001A4", "dlc": 8, "data": "FF 13 00 3C 00 00 00 00", "name": "EngineData"}
 ```
 
-Pipe it to `jq` for structured filtering:
+With `--j1939`, each JSON line also includes `pgn`, `pgn_name`, `sa`, and `sa_name` fields:
+
+```
+canviz monitor --interface slcan --channel COM3 --bitrate 250000 --j1939 | jq .
+```
+```json
+{"ts": 1.234567, "id": "18F00400", "dlc": 8, "data": "F0 4F 4F FB 14 FF F0 FF",
+ "name": "", "pgn": "0xF004", "pgn_name": "EEC1 - Engine Speed / Torque",
+ "sa": "0x00", "sa_name": "Engine #1"}
+```
+
+Filter by source address or PGN:
+```bash
+# Show only Engine #1 traffic
+canviz monitor --interface socketcan --channel can0 --bitrate 250000 --j1939 \
+  | jq 'select(.sa == "0x00")'
+
+# Show only DM1 active fault frames
+canviz monitor --interface socketcan --channel can0 --bitrate 250000 --j1939 \
+  | jq 'select(.pgn == "0xFECA")'
+```
+
+Pipe it to `jq` for structured filtering (standard traffic):
 ```
 canviz monitor --interface socketcan --channel can0 | jq 'select(.id == "000001A4")'
 ```
@@ -279,7 +322,93 @@ canviz decode --input trace.json --dbc vehicle.dbc --format csv | grep EngineRPM
 
 ---
 
+## `canviz j1939` - J1939 decoder commands
+
+Inspect J1939 decoder state from the command line. Requires `canviz serve` to be running.
+
+### `canviz j1939 status`
+
+Prints the full J1939 picture from a running CANviz server - decoder mode, PGN database size, live nodes table, BAM log, and active DM1 fault codes.
+
+```
+canviz j1939 status [--host 127.0.0.1] [--port 8080]
+```
+
+**Example output:**
+
+```
+  J1939 Decoder  ON
+
+  Database: 54 PGNs · 101 SA names · 11 SPNs (pretty_j1939)
+
+  Nodes (2)
+ ──────────────────────────────────────────────────────────
+  SA       Name             Frames    Last seen
+  0x00     Engine #1        2,647     just now
+  0x10     Trip Recorder       81     just now
+
+  BAM Log (1 reassembled)
+ ──────────────────────────────────────────────────────────
+  PGN      Name                    Bytes  Payload (hex)
+  0xFEEC   VI - Vehicle Identif…    37    31 48 47 43 4D 38 32 36…
+
+  DM1 Active Faults (1)
+ ──────────────────────────────────────────────────────────
+  SPN   Component              FMI                          OC   Lamps
+  100   Engine Oil Pressure    1 - Below normal operating    3   Amber Warn
+```
+
+**Available flags:**
+
+| Flag | Default | Description |
+|---|---|---|
+| `--host` | `127.0.0.1` | Host where `canviz serve` is running |
+| `--port` | `8080` | Port where `canviz serve` is listening |
+
+**Typical SSH workflow:**
+
+```bash
+# On the remote machine
+canviz serve --interface socketcan --channel can0 --bitrate 250000 --headless &
+
+# From your laptop (SSH tunnel already open)
+canviz j1939 status --host 127.0.0.1 --port 8080
+```
+
+---
+
 ## Common workflows
+
+### Monitor a J1939 truck/agriculture bus over SSH
+
+```bash
+# On the remote machine (Pi or embedded Linux)
+sudo ip link set can0 up type can bitrate 250000
+canviz monitor --interface socketcan --channel can0 --j1939
+```
+
+Adds PGN and SA columns directly in the SSH terminal. No browser or port forwarding needed.
+
+### Inspect J1939 faults headlessly
+
+```bash
+# Start server on remote machine
+canviz serve --interface socketcan --channel can0 --bitrate 250000 --headless &
+
+# From your laptop - check fault codes
+canviz j1939 status
+```
+
+### Capture J1939 traffic and filter by PGN offline
+
+```bash
+# Capture raw frames (is_extended_id is preserved in the file)
+canviz capture --interface slcan --channel COM3 --bitrate 250000 --duration 60 --output j1939_trace.json
+
+# Pipe monitor output to capture only DM1 frames
+canviz monitor --interface slcan --channel COM3 --bitrate 250000 --j1939 \
+  | jq 'select(.pgn == "0xFECA")' > dm1_events.jsonl
+```
 
 ### SSH into a Raspberry Pi and monitor live
 
@@ -360,6 +489,8 @@ After installing, press `Tab` after `canviz` to see subcommands, and `Tab` again
 ## Limitations
 
 - `canviz monitor` shows per-ID rate and last-seen - it does not decode individual signal values in the table. Load the DBC in the browser UI for per-signal detail, or use `canviz capture` + `canviz decode` for offline analysis.
+- `canviz monitor --j1939` decodes PGN names and SA addresses but does not decode signal values (RPM, speed, temperature) inside each message. For full signal decode load a J1939 DBC file in the browser UI or use `canviz decode` with a J1939-compatible DBC.
+- `canviz j1939 status` requires `canviz serve` to be running - it queries the server's REST API. It does not work standalone without a server.
 - `canviz capture` stores raw bytes only. Signal decoding happens in the `decode` step, not at capture time - this keeps the capture loop fast and the capture file format stable even if the DBC changes.
 - `--headless` still opens port 8080. If deploying on a shared or remote machine, you are responsible for firewall rules.
 - `canviz monitor` colour coding is based on byte sum delta - it is a heuristic to show "something changed", not a precise signal-level diff. Use the browser UI for signal-level detail.

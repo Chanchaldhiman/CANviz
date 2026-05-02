@@ -208,8 +208,250 @@ def monitor(
     index: IndexOpt = 0,
     bitrate: BitrateOpt = 500_000,
     dbc: DbcOpt = None,
+    j1939: Annotated[bool, typer.Option("--j1939", help="Enable J1939 decode — adds PGN and SA columns. Use 250 kbps for trucks/agriculture.")] = False,
     refresh_rate: Annotated[float, typer.Option("--refresh-rate", help="Table refresh rate in Hz")] = 4.0,
 ) -> None:
+    """
+    Live CAN frame monitor in the terminal.
+
+    Shows a Rich table that refreshes at 4 Hz. Each row is one unique CAN message ID.
+    Columns: ID · Name (if DBC loaded) · DLC · Data (hex) · Count · Rate (fps) · Last Seen
+    With --j1939: adds PGN and SA (Source Address) columns for J1939 traffic.
+
+    Data column is colour-coded on change:
+      Green  — byte sum increased since last frame
+      Red    — byte sum decreased
+      White  — unchanged
+
+    Falls back to plain JSON lines when stdout is not a TTY (e.g. piped to grep or jq).
+
+    Ctrl+C to exit cleanly.
+
+    Examples:
+      canviz monitor --interface socketcan --channel can0
+      canviz monitor --interface slcan --channel COM3 --bitrate 250000 --j1939
+      canviz monitor --interface gs_usb --dbc vehicle.dbc
+    """
+    is_tty = sys.stdout.isatty()
+
+    # Optionally load a DBC for signal name lookup
+    db = None
+    if dbc is not None:
+        try:
+            import cantools
+            db = cantools.database.load_file(str(dbc))
+            if is_tty:
+                console.print(f"  [green]DBC loaded:[/] {dbc.name} ({len(db.messages)} messages)\n")
+        except Exception as exc:
+            console.print(f"  [yellow]Warning:[/] DBC load failed — {exc}", err=True)
+
+    # Import J1939 store if needed
+    j1939_store_inst = None
+    if j1939:
+        try:
+            from canviz.j1939_store import J1939Store
+            j1939_store_inst = J1939Store()
+            j1939_store_inst.set_mode("on")
+            if is_tty:
+                console.print("  [cyan]J1939 decode enabled[/] — PGN and SA columns active\n")
+        except Exception as exc:
+            console.print(f"  [yellow]Warning:[/] J1939 init failed — {exc}", err=True)
+            j1939_store_inst = None
+
+    # Open the bus directly — no FastAPI involved
+    try:
+        bus = open_bus(interface, channel, bitrate, index)
+    except Exception as exc:
+        console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
+        raise typer.Exit(code=1)
+
+    if is_tty:
+        console.print(f"  [bold green]Monitoring[/] {interface}"
+                      + (f" {channel}" if channel else "")
+                      + f" @ {bitrate} bps"
+                      + (" [cyan][J1939][/]" if j1939 else "")
+                      + " — [dim]Ctrl+C to stop[/]\n")
+
+    rows: dict[int, dict] = {}
+    lock = threading.Lock()
+
+    def _on_message(msg: can.Message) -> None:
+        arb_id = msg.arbitration_id
+        now    = time.monotonic()
+        data   = bytes(msg.data)
+
+        # J1939 decode
+        j1939_info: dict | None = None
+        if j1939_store_inst is not None:
+            j1939_info = j1939_store_inst.process_frame(
+                arb_id=arb_id,
+                data=data,
+                is_extended=msg.is_extended_id,
+            )
+
+        with lock:
+            if arb_id not in rows:
+                name = ""
+                if db is not None:
+                    try:
+                        name = db.get_message_by_frame_id(arb_id).name
+                    except KeyError:
+                        pass
+                rows[arb_id] = {
+                    "count": 0, "dlc": msg.dlc, "data": data,
+                    "prev_data": data, "last_time": now,
+                    "first_time": now, "rate": 0.0, "name": name,
+                    "j1939": j1939_info,
+                }
+
+            row = rows[arb_id]
+            elapsed = now - row["last_time"]
+            row["prev_data"] = row["data"]
+            row["data"]      = data
+            row["dlc"]       = msg.dlc
+            row["count"]    += 1
+            row["last_time"] = now
+            if j1939_info:
+                row["j1939"] = j1939_info
+            if elapsed > 0:
+                inst_rate = 1.0 / elapsed
+                row["rate"] = 0.2 * inst_rate + 0.8 * row["rate"]
+
+        if not is_tty:
+            line: dict = {
+                "ts":   round(now, 6),
+                "id":   f"{arb_id:08X}",
+                "dlc":  msg.dlc,
+                "data": data.hex(" ").upper(),
+                "name": rows[arb_id]["name"],
+            }
+            if j1939_info:
+                line["pgn"]     = j1939_info.get("pgn_hex", "")
+                line["pgn_name"]= j1939_info.get("pgn_name", "")
+                line["sa"]      = j1939_info.get("sa_hex", "")
+                line["sa_name"] = j1939_info.get("sa_name", "")
+            sys.stdout.write(json.dumps(line) + "\n")
+            sys.stdout.flush()
+
+    bus.set_filters(None)
+    _running = True
+
+    def _reader() -> None:
+        _no_frame_count = 0
+        while _running:
+            try:
+                msg = bus.recv(timeout=0.1)
+                if msg is not None:
+                    _no_frame_count = 0
+                    _on_message(msg)
+                else:
+                    _no_frame_count += 1
+                    if _no_frame_count == 300 and interface == "slcan":
+                        err_console.print(
+                            f"\n  [yellow]Warning:[/] slcan: no frames in ~30 s. "
+                            f"Check CAN bitrate ({bitrate} bps) matches the bus. "
+                            f"Try --serial-baudrate 2000000 if needed."
+                        )
+            except Exception as exc:
+                err_console.print(f"  [red]recv error:[/] {exc}")
+                time.sleep(0.1)
+
+    reader_thread = threading.Thread(target=_reader, daemon=True)
+    reader_thread.start()
+
+    def _build_table() -> Table:
+        table = Table(
+            show_header=True,
+            header_style="bold cyan",
+            border_style="dim",
+            expand=True,
+        )
+        table.add_column("ID (hex)",   style="cyan",  no_wrap=True, min_width=10)
+        table.add_column("Name",       style="white", no_wrap=True, min_width=16)
+
+        if j1939:
+            table.add_column("PGN",      style="blue",   no_wrap=True, min_width=8)
+            table.add_column("PGN Name", style="white",  no_wrap=True, min_width=22)
+            table.add_column("SA",       style="yellow", no_wrap=True, min_width=12)
+
+        table.add_column("DLC",        style="dim",   no_wrap=True, min_width=4, justify="right")
+        table.add_column("Data",       no_wrap=True,  min_width=24)
+        table.add_column("Count",      justify="right", min_width=8)
+        table.add_column("Rate (fps)", justify="right", min_width=10)
+        table.add_column("Last seen",  justify="right", min_width=10)
+
+        now = time.monotonic()
+        with lock:
+            sorted_ids = sorted(rows.keys())
+
+        for arb_id in sorted_ids:
+            with lock:
+                row = dict(rows[arb_id])
+
+            hex_id  = f"{arb_id:08X}"
+            name    = row["name"] or "—"
+            dlc     = str(row["dlc"])
+            count   = f"{row['count']:,}"
+            rate    = f"{row['rate']:.1f}"
+            age     = now - row["last_time"]
+            age_str = f"{age:.2f}s" if age < 60 else f"{age/60:.1f}m"
+
+            curr_sum  = sum(row["data"])
+            prev_sum  = sum(row["prev_data"])
+            hex_data  = row["data"].hex(" ").upper()
+            if curr_sum > prev_sum:
+                data_text = Text(hex_data, style="bold green")
+            elif curr_sum < prev_sum:
+                data_text = Text(hex_data, style="bold red")
+            else:
+                data_text = Text(hex_data, style="white")
+
+            if j1939:
+                j = row.get("j1939") or {}
+                pgn_hex  = j.get("pgn_hex",  "—")
+                pgn_name = j.get("pgn_name", "—")
+                # Truncate long PGN names for terminal width
+                if len(pgn_name) > 28:
+                    pgn_name = pgn_name[:26] + "…"
+                sa_str   = f"{j.get('sa_hex','—')} {j.get('sa_name','')}"
+                table.add_row(hex_id, name, pgn_hex, pgn_name, sa_str,
+                              dlc, data_text, count, rate, age_str)
+            else:
+                table.add_row(hex_id, name, dlc, data_text, count, rate, age_str)
+
+        return table
+
+    try:
+        if is_tty:
+            refresh_interval = 1.0 / refresh_rate
+            with Live(
+                _build_table(),
+                console=console,
+                refresh_per_second=refresh_rate,
+                screen=False,
+            ) as live:
+                while True:
+                    time.sleep(refresh_interval)
+                    live.update(_build_table())
+        else:
+            while True:
+                time.sleep(1)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        _running = False
+        reader_thread.join(timeout=1.0)
+        try:
+            bus.shutdown()
+        except Exception:
+            pass
+        if is_tty:
+            with lock:
+                total = sum(r["count"] for r in rows.values())
+            console.print(
+                f"\n  [dim]Stopped. {len(rows)} unique IDs · {total:,} total frames.[/]\n"
+            )
     """
     Live CAN frame monitor in the terminal.
 
@@ -321,11 +563,11 @@ def monitor(
                     _on_message(msg)
                 else:
                     _no_frame_count += 1
-                    # After 5 s of silence on slcan, surface an actionable hint.
-                    if _no_frame_count == 50 and interface == "slcan":
+                    # After 30 s of silence on slcan, surface one actionable hint.
+                    if _no_frame_count == 300 and interface == "slcan":
                         err_console.print(
-                            f"\n  [yellow]Warning:[/] slcan: no frames in ~5 s. "
-                            f"Check CAN bitrate ({bitrate} bps) matches the bus, "
+                            f"\n  [yellow]Warning:[/] slcan: no frames in ~30 s. "
+                            f"Check CAN bitrate ({bitrate} bps) matches the bus. "
                             f"Try --serial-baudrate 2000000 if needed."
                         )
             except Exception as exc:
@@ -469,11 +711,11 @@ def capture(
                 msg = bus.recv(timeout=0.1)
                 if msg is None:
                     _no_frame_count += 1
-                    # After 5 s of silence on slcan, surface an actionable hint.
-                    if _no_frame_count == 50 and interface == "slcan":
+                    # After 30 s of silence on slcan, surface one actionable hint.
+                    if _no_frame_count == 300 and interface == "slcan":
                         err_console.print(
-                            f"\n  [yellow]Warning:[/] slcan: no frames in ~5 s. "
-                            f"Check CAN bitrate ({bitrate} bps) matches the bus, "
+                            f"\n  [yellow]Warning:[/] slcan: no frames in ~30 s. "
+                            f"Check CAN bitrate ({bitrate} bps) matches the bus. "
                             f"Try --serial-baudrate 2000000 if needed."
                         )
                     continue
@@ -669,6 +911,125 @@ def decode(
             f"\n  [green]Saved[/] {len(decoded_frames):,} frames "
             f"({n_with_signals:,} decoded) → [cyan]{output}[/] ({size_kb} KB)\n"
         )
+
+
+# ── j1939 subcommand group ────────────────────────────────────────────────────
+
+j1939_app = typer.Typer(
+    name="j1939",
+    help="J1939 decoder commands — inspect nodes, faults, and BAM log.",
+    no_args_is_help=True,
+)
+app.add_typer(j1939_app, name="j1939")
+
+
+@j1939_app.command("status")
+def j1939_status(
+    host: Annotated[str, typer.Option("--host", help="CANviz server host")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", help="CANviz server port")] = 8080,
+) -> None:
+    """
+    Show J1939 decoder status from a running CANviz server.
+
+    Displays mode, PGN database size, active nodes, recent BAM messages,
+    and active DM1 fault codes. Requires `canviz serve` to be running.
+
+    Example:
+      canviz serve --interface slcan --channel COM3 --bitrate 250000 &
+      canviz j1939 status
+    """
+    import urllib.request
+    import urllib.error
+
+    url = f"http://{host}:{port}/j1939/status"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.URLError:
+        console.print(f"  [red]Error:[/] Could not reach CANviz at {url}")
+        console.print("  Is [cyan]canviz serve[/] running?")
+        raise typer.Exit(code=1)
+
+    mode    = data.get("mode", "off")
+    detected= data.get("auto_detected", False)
+    pgn_sz  = data.get("pgn_db_size", 0)
+    sa_sz   = data.get("sa_db_size", 0)
+    spn_sz  = data.get("spn_db_size", 0)
+    has_pj  = data.get("has_pretty_j1939", False)
+
+    # Header
+    mode_color = "green" if mode == "on" else "dim"
+    console.print(f"\n  [bold]J1939 Decoder[/]  [{mode_color}]{mode.upper()}[/]"
+                  + ("  [yellow](traffic detected)[/]" if detected and mode == "off" else ""))
+    console.print(f"  Database: [cyan]{pgn_sz}[/] PGNs · [cyan]{sa_sz}[/] SA names · "
+                  f"[cyan]{spn_sz}[/] SPNs"
+                  + (" (pretty_j1939)" if has_pj else " (built-in)"))
+
+    # Active nodes
+    sa_table = data.get("sa_table", [])
+    if sa_table:
+        console.print(f"\n  [bold cyan]Nodes ({len(sa_table)})[/]")
+        t = Table(show_header=True, header_style="bold", border_style="dim", expand=False)
+        t.add_column("SA",     style="yellow", no_wrap=True)
+        t.add_column("Name",   style="white")
+        t.add_column("Frames", justify="right", style="cyan")
+        t.add_column("Last seen", justify="right", style="dim")
+        for node in sa_table:
+            age_s = node.get("last_seen_s", 0)
+            age   = f"{age_s:.0f}s ago" if age_s < 60 else f"{age_s/60:.1f}m ago"
+            t.add_row(node["sa_hex"], node["sa_name"],
+                      f"{node['frame_count']:,}", age)
+        console.print(t)
+    else:
+        console.print("\n  [dim]No nodes seen — enable decoder and connect to a J1939 bus.[/]")
+
+    # Recent BAM
+    bam = data.get("recent_bam", [])
+    if bam:
+        console.print(f"\n  [bold cyan]BAM Log ({len(bam)} reassembled)[/]")
+        t = Table(show_header=True, header_style="bold", border_style="dim", expand=False)
+        t.add_column("PGN",      style="blue",  no_wrap=True)
+        t.add_column("Name",     style="white")
+        t.add_column("Bytes",    justify="right", style="dim")
+        t.add_column("Payload (hex)", style="dim")
+        for b in bam:
+            payload = b.get("data_hex", "")
+            if len(payload) > 40:
+                payload = payload[:38] + "…"
+            t.add_row(b["pgn_hex"], b["pgn_name"], str(b["length"]), payload)
+        console.print(t)
+
+    # DM1 faults
+    dm1 = data.get("recent_dm1", [])
+    if dm1:
+        console.print(f"\n  [bold red]DM1 Active Faults ({len(dm1)})[/]")
+        t = Table(show_header=True, header_style="bold", border_style="dim", expand=False)
+        t.add_column("SPN",       style="yellow", no_wrap=True)
+        t.add_column("Component", style="white")
+        t.add_column("FMI", no_wrap=True)
+        t.add_column("OC",  justify="right", style="dim")
+        t.add_column("Lamps", style="red")
+
+        _FMI = {
+            0: "Above normal", 1: "Below normal", 2: "Erratic/intermittent",
+            3: "Voltage high", 4: "Voltage low",  5: "Open circuit",
+            6: "Short to GND", 7: "Mech. fault",  12: "Bad component",
+            31: "Condition exists",
+        }
+        for f in dm1:
+            fmi_txt = f"{f['fmi']} — {_FMI.get(f['fmi'], 'See SAE J1939-73')}"
+            lamps   = [k for k, v in f.get("lamps", {}).items() if v == "Active"]
+            lamp_str= ", ".join(lamps) if lamps else "None"
+            t.add_row(str(f["spn"]),
+                      f.get("spn_name") or f"SPN {f['spn']}",
+                      fmi_txt,
+                      str(f["oc"]),
+                      lamp_str)
+        console.print(t)
+    else:
+        console.print("\n  [dim]No active DM1 faults.[/]")
+
+    console.print()
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ canviz
 
 ![CANviz demo](docs/demo.gif)
 
-CANviz works with any Candlelight-firmware USB CAN adapter (~$8). No GUI install,
+CANviz works with any USB CAN adapter even low cost adapters too(~$8). No GUI install,
 no driver setup, no account, no internet connection required. It runs entirely in
 your browser at `localhost` - whether you are an embedded engineer debugging an ECU,
 a researcher studying automotive protocols, or a hobbyist on your first CAN project.
@@ -35,7 +35,24 @@ Not sure which interface to select? Check [Device Guide](docs/interfaceguide.md)
 ---
 
 ## What's New
- 
+
+### v0.3.0
+
+**J1939 passive decoder** - zero-config protocol intelligence for trucks, agriculture, and marine networks.
+
+- **Auto-detection** - CANviz detects 29-bit extended-ID traffic automatically and offers to enable the decoder
+- **CAN ID decomposition** - every frame instantly shows Priority, PGN, Source Address (SA), and Destination Address
+- **54 PGN name definitions** built-in (EEC1, CCVS, DM1, ET1, AMB, VEP1, TP.CM/DT and more)
+- **99 SA address names** - ECU names like "Engine #1", "Brakes - System Controller", "Diesel Particulate Filter Controller"
+- **BAM transport reassembly** - multi-packet messages (VIN, software ID, long DM payloads) are reassembled and shown complete
+- **DM1 active fault decode** - SPN number, component name, Failure Mode description, occurrence count, and lamp status (MIL / Red Stop / Amber Warning / Protect)
+- **Message table columns** - PGN, PGN Name, SA, DA appear automatically when decoder is enabled; BAM CM, BAM DT, and DM1 badges on each row
+- **Light / dark mode** - theme toggle in the top bar, persists across sessions
+
+**Standard bitrate for J1939:** 250 kbps (trucks, agriculture, marine). See [J1939 Guide](docs/j1939.md) for full protocol documentation, limitations, and DBC-based signal decode.
+
+---
+
 ### v0.2.4 
  
 **New hardware support**

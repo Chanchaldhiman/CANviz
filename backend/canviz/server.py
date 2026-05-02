@@ -1,7 +1,7 @@
 """
 canviz/server.py
 ----------------
-Assembles the FastAPI app — mounts all routers, configures CORS
+Assembles the FastAPI app - mounts all routers, configures CORS
 (browser → localhost needs it), and wires startup/shutdown via lifespan.
 """
 
@@ -26,9 +26,9 @@ from starlette.responses import Response
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # startup — connections opened on demand via /connect
+    # startup - connections opened on demand via /connect
     yield
-    # shutdown — clean up bus and broadcaster gracefully
+    # shutdown - clean up bus and broadcaster gracefully
     await broadcaster.stop()
     await bus_manager._hard_shutdown()
 
