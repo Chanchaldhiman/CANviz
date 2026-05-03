@@ -4,10 +4,10 @@ canviz/cli.py
 Typer-based entry point registered as the `canviz` console script.
 
 Subcommands:
-  canviz serve    — start the web server (default behaviour, backward-compatible)
-  canviz monitor  — Rich live table in the terminal (SSH / headless workflow)
-  canviz capture  — record frames to a JSON file for a fixed duration
-  canviz decode   — read a captured file, apply DBC decode, write JSON/CSV to stdout
+  canviz serve    - start the web server (default behaviour, backward-compatible)
+  canviz monitor  - Rich live table in the terminal (SSH / headless workflow)
+  canviz capture  - record frames to a JSON file for a fixed duration
+  canviz decode   - read a captured file, apply DBC decode, write JSON/CSV to stdout
 
 Backward-compatible invocation (no subcommand = serve):
   canviz                                       # auto-detect gs_usb, open browser
@@ -52,7 +52,7 @@ from canviz.config import settings
 
 app = typer.Typer(
     name="canviz",
-    help="CANviz — open-source browser-based CAN bus analyzer",
+    help="CANviz - open-source browser-based CAN bus analyzer",
     add_completion=True,          # generates shell autocomplete for bash/zsh/fish
     no_args_is_help=False,        # allow bare `canviz` to run serve (backward compat)
     invoke_without_command=True,
@@ -89,7 +89,7 @@ DbcOpt = Annotated[
 
 
 
-# ── Root callback — invoked when no subcommand is given ──────────────────────
+# ── Root callback - invoked when no subcommand is given ──────────────────────
 
 @app.callback(invoke_without_command=True)
 def root(
@@ -104,11 +104,11 @@ def root(
     log_level: Annotated[str, typer.Option("--log-level", help="Logging level")] = "info",
 ) -> None:
     """
-    Start the CANviz web server (default behaviour — runs when no subcommand is given).
+    Start the CANviz web server (default behaviour - runs when no subcommand is given).
     Backward-compatible with all previous canviz flags.
     """
     if ctx.invoked_subcommand is not None:
-        # A subcommand was given — let it handle everything
+        # A subcommand was given - let it handle everything
         return
 
     _run_serve(
@@ -120,6 +120,7 @@ def root(
         port=port,
         headless=no_browser,
         log_level=log_level,
+        enable_j1939=False,
     )
 
 
@@ -133,8 +134,9 @@ def serve(
     bitrate: BitrateOpt = 500_000,
     host: Annotated[str, typer.Option("--host", help="Host to bind")] = "127.0.0.1",
     port: Annotated[int, typer.Option("--port", help="Port to listen on")] = 8080,
-    headless: Annotated[bool, typer.Option("--headless", help="Start API only — do not open a browser")] = False,
-    no_browser: Annotated[bool, typer.Option("--no-browser", hidden=True)] = False,  # backward compat alias
+    headless: Annotated[bool, typer.Option("--headless", help="Start API only - do not open a browser")] = False,
+    no_browser: Annotated[bool, typer.Option("--no-browser", hidden=True)] = False,
+    j1939: Annotated[bool, typer.Option("--j1939", help="Auto-enable J1939 decoder after connect")] = False,
     log_level: Annotated[str, typer.Option("--log-level")] = "info",
 ) -> None:
     """Start the CANviz web server and (optionally) open a browser."""
@@ -147,6 +149,7 @@ def serve(
         port=port,
         headless=headless or no_browser,
         log_level=log_level,
+        enable_j1939=j1939,
     )
 
 
@@ -159,6 +162,7 @@ def _run_serve(
     port: int,
     headless: bool,
     log_level: str,
+    enable_j1939: bool = False,
 ) -> None:
     """Shared implementation used by root callback and `serve` subcommand."""
     settings.interface = interface
@@ -170,11 +174,11 @@ def _run_serve(
 
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
-        format="%(asctime)s [%(name)s] %(levelname)s — %(message)s",
+        format="%(asctime)s [%(name)s] %(levelname)s - %(message)s",
     )
 
     url = f"http://{host}:{port}"
-    console.print(f"\n  [bold green]CANviz[/]  →  [link={url}]{url}[/link]")
+    console.print(f"\n  [bold green]CANviz[/]  ->  [link={url}]{url}[/link]")
     console.print(f"  Interface : [cyan]{interface}[/]", end="")
     if channel:
         console.print(f"  channel=[cyan]{channel}[/]", end="")
@@ -183,13 +187,68 @@ def _run_serve(
     console.print(f"  bitrate=[cyan]{bitrate}[/]\n")
 
     if headless:
-        console.print("  [yellow]Headless mode[/] — API + WebSocket only, browser will not open.")
+        console.print("  [yellow]Headless mode[/] - API + WebSocket only, browser will not open.")
         console.print("  Connect to the WebSocket at [cyan]ws://{}:{}/ws/frames[/]\n".format(host, port))
-    else:
-        def _open():
-            time.sleep(0.8)
+
+    def _auto_connect(do_connect: bool = True) -> None:
+        import urllib.request, urllib.error
+        base = f"http://{host}:{port}"
+        # Wait for server to be ready (up to 15s)
+        for _ in range(60):
+            try:
+                urllib.request.urlopen(f"{base}/status", timeout=1)
+                break
+            except Exception:
+                time.sleep(0.25)
+        if not do_connect:
+            # No explicit args given - just open browser, skip /connect
+            if not headless:
+                webbrowser.open(url)
+            return
+        # POST /connect
+        body = json.dumps({
+            "interface": interface,
+            "channel":   channel,
+            "bitrate":   bitrate,
+            "index":     index,
+        }).encode()
+        req = urllib.request.Request(
+            f"{base}/connect",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status == 200:
+                    console.print(f"  [green]Auto-connected:[/] {interface}"
+                                  + (f" on {channel}" if channel else ""))
+        except Exception as exc:
+            err_console.print(f"  [yellow]Auto-connect failed:[/] {exc}")
+            return
+        # Optionally enable J1939
+        if enable_j1939:
+            j_body = json.dumps({"mode": "on"}).encode()
+            j_req = urllib.request.Request(
+                f"{base}/j1939/mode",
+                data=j_body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(j_req, timeout=5) as resp:
+                    if resp.status == 200:
+                        console.print("  [green]J1939 decoder enabled.[/]")
+            except Exception as exc:
+                err_console.print(f"  [yellow]J1939 enable failed:[/] {exc}")
+        # Open browser unless headless
+        if not headless:
             webbrowser.open(url)
-        threading.Thread(target=_open, daemon=True).start()
+
+    # Only auto-connect when the user explicitly passed connection args.
+    # Bare `canviz` (gs_usb + no channel) should just open the browser.
+    _should_auto_connect = (interface != "gs_usb") or bool(channel)
+    threading.Thread(target=_auto_connect, daemon=True, args=(_should_auto_connect,)).start()
 
     uvicorn.run(
         "canviz.server:app",
@@ -208,7 +267,7 @@ def monitor(
     index: IndexOpt = 0,
     bitrate: BitrateOpt = 500_000,
     dbc: DbcOpt = None,
-    j1939: Annotated[bool, typer.Option("--j1939", help="Enable J1939 decode — adds PGN and SA columns. Use 250 kbps for trucks/agriculture.")] = False,
+    j1939: Annotated[bool, typer.Option("--j1939", help="Enable J1939 decode - adds PGN and SA columns. Use 250 kbps for trucks/agriculture.")] = False,
     refresh_rate: Annotated[float, typer.Option("--refresh-rate", help="Table refresh rate in Hz")] = 4.0,
 ) -> None:
     """
@@ -219,9 +278,9 @@ def monitor(
     With --j1939: adds PGN and SA (Source Address) columns for J1939 traffic.
 
     Data column is colour-coded on change:
-      Green  — byte sum increased since last frame
-      Red    — byte sum decreased
-      White  — unchanged
+      Green  - byte sum increased since last frame
+      Red    - byte sum decreased
+      White  - unchanged
 
     Falls back to plain JSON lines when stdout is not a TTY (e.g. piped to grep or jq).
 
@@ -243,7 +302,7 @@ def monitor(
             if is_tty:
                 console.print(f"  [green]DBC loaded:[/] {dbc.name} ({len(db.messages)} messages)\n")
         except Exception as exc:
-            console.print(f"  [yellow]Warning:[/] DBC load failed — {exc}", err=True)
+            console.print(f"  [yellow]Warning:[/] DBC load failed - {exc}", err=True)
 
     # Import J1939 store if needed
     j1939_store_inst = None
@@ -253,16 +312,16 @@ def monitor(
             j1939_store_inst = J1939Store()
             j1939_store_inst.set_mode("on")
             if is_tty:
-                console.print("  [cyan]J1939 decode enabled[/] — PGN and SA columns active\n")
+                console.print("  [cyan]J1939 decode enabled[/] - PGN and SA columns active\n")
         except Exception as exc:
-            console.print(f"  [yellow]Warning:[/] J1939 init failed — {exc}", err=True)
+            console.print(f"  [yellow]Warning:[/] J1939 init failed - {exc}", err=True)
             j1939_store_inst = None
 
-    # Open the bus directly — no FastAPI involved
+    # Open the bus directly - no FastAPI involved
     try:
         bus = open_bus(interface, channel, bitrate, index)
     except Exception as exc:
-        console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
+        console.print(f"  [red]Error:[/] Could not open bus - {exc}", err=True)
         raise typer.Exit(code=1)
 
     if is_tty:
@@ -270,7 +329,7 @@ def monitor(
                       + (f" {channel}" if channel else "")
                       + f" @ {bitrate} bps"
                       + (" [cyan][J1939][/]" if j1939 else "")
-                      + " — [dim]Ctrl+C to stop[/]\n")
+                      + " - [dim]Ctrl+C to stop[/]\n")
 
     rows: dict[int, dict] = {}
     lock = threading.Lock()
@@ -288,6 +347,30 @@ def monitor(
                 data=data,
                 is_extended=msg.is_extended_id,
             )
+            # process_frame returns pgn_hex/sa_hex but not always names.
+            # Look them up from the store's loaded pgn_db/sa_db directly.
+            if j1939_info and not j1939_info.get("pgn_name"):
+                pgn_db = getattr(j1939_store_inst, "pgn_db", {})
+                sa_db  = getattr(j1939_store_inst, "sa_db",  {})
+                try:
+                    pgn_raw = j1939_info.get("pgn_hex", "")
+                    sa_raw  = j1939_info.get("sa_hex",  "")
+                    pgn_int = int(pgn_raw, 16) if pgn_raw else None
+                    sa_int  = int(sa_raw,  16) if sa_raw  else None
+                    if pgn_int is not None:
+                        j1939_info["pgn_name"] = (
+                            pgn_db.get(pgn_int)
+                            or pgn_db.get(str(pgn_int))
+                            or ""
+                        )
+                    if sa_int is not None:
+                        j1939_info["sa_name"] = (
+                            sa_db.get(sa_int)
+                            or sa_db.get(str(sa_int))
+                            or ""
+                        )
+                except Exception:
+                    pass
 
         with lock:
             if arb_id not in rows:
@@ -389,7 +472,7 @@ def monitor(
                 row = dict(rows[arb_id])
 
             hex_id  = f"{arb_id:08X}"
-            name    = row["name"] or "—"
+            name    = row["name"] or "-"
             dlc     = str(row["dlc"])
             count   = f"{row['count']:,}"
             rate    = f"{row['rate']:.1f}"
@@ -408,12 +491,12 @@ def monitor(
 
             if j1939:
                 j = row.get("j1939") or {}
-                pgn_hex  = j.get("pgn_hex",  "—")
-                pgn_name = j.get("pgn_name", "—")
+                pgn_hex  = j.get("pgn_hex",  "-")
+                pgn_name = j.get("pgn_name", "-")
                 # Truncate long PGN names for terminal width
                 if len(pgn_name) > 28:
                     pgn_name = pgn_name[:26] + "…"
-                sa_str   = f"{j.get('sa_hex','—')} {j.get('sa_name','')}"
+                sa_str   = f"{j.get('sa_hex','-')} {j.get('sa_name','')}"
                 table.add_row(hex_id, name, pgn_hex, pgn_name, sa_str,
                               dlc, data_text, count, rate, age_str)
             else:
@@ -459,9 +542,9 @@ def monitor(
     Columns: ID · Name (if DBC loaded) · DLC · Data (hex) · Count · Rate (fps) · Last Seen
 
     Data column is colour-coded on change:
-      Green  — byte sum increased since last frame
-      Red    — byte sum decreased
-      White  — unchanged
+      Green  - byte sum increased since last frame
+      Red    - byte sum decreased
+      White  - unchanged
 
     Falls back to plain JSON lines when stdout is not a TTY (e.g. piped to grep or jq).
 
@@ -478,20 +561,20 @@ def monitor(
             if is_tty:
                 console.print(f"  [green]DBC loaded:[/] {dbc.name} ({len(db.messages)} messages)\n")
         except Exception as exc:
-            console.print(f"  [yellow]Warning:[/] DBC load failed — {exc}", err=True)
+            console.print(f"  [yellow]Warning:[/] DBC load failed - {exc}", err=True)
 
-    # Open the bus directly — no FastAPI involved
+    # Open the bus directly - no FastAPI involved
     try:
         bus = open_bus(interface, channel, bitrate, index)
     except Exception as exc:
-        console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
+        console.print(f"  [red]Error:[/] Could not open bus - {exc}", err=True)
         raise typer.Exit(code=1)
 
     if is_tty:
         console.print(f"  [bold green]Monitoring[/] {interface}"
                       + (f" {channel}" if channel else "")
                       + f" @ {bitrate} bps"
-                      + " — [dim]Ctrl+C to stop[/]\n")
+                      + " - [dim]Ctrl+C to stop[/]\n")
 
     # State per message ID
     # { arb_id: { "count": int, "dlc": int, "data": bytes, "prev_data": bytes,
@@ -548,7 +631,7 @@ def monitor(
             sys.stdout.write(json.dumps(line) + "\n")
             sys.stdout.flush()
 
-    # Attach callback — synchronous since we're in a thread
+    # Attach callback - synchronous since we're in a thread
     bus.set_filters(None)
 
     _running = True
@@ -601,7 +684,7 @@ def monitor(
                 row = dict(rows[arb_id])  # shallow copy to release lock quickly
 
             hex_id = f"{arb_id:08X}"
-            name   = row["name"] or "—"
+            name   = row["name"] or "-"
             dlc    = str(row["dlc"])
             count  = f"{row['count']:,}"
             rate   = f"{row['rate']:.1f}"
@@ -636,7 +719,7 @@ def monitor(
                     time.sleep(refresh_interval)
                     live.update(_build_table())
         else:
-            # Non-TTY — _on_message already writes JSON lines; just block
+            # Non-TTY - _on_message already writes JSON lines; just block
             while True:
                 time.sleep(1)
 
@@ -692,13 +775,13 @@ def capture(
     try:
         bus = open_bus(interface, channel, bitrate, index,)
     except Exception as exc:
-        console.print(f"  [red]Error:[/] Could not open bus — {exc}", err=True)
+        console.print(f"  [red]Error:[/] Could not open bus - {exc}", err=True)
         raise typer.Exit(code=1)
 
     console.print(f"  [bold green]Capturing[/] → [cyan]{output}[/]", end="")
     if duration:
         console.print(f"  (max [cyan]{duration}s[/])", end="")
-    console.print("  — [dim]Ctrl+C to stop[/]")
+    console.print("  - [dim]Ctrl+C to stop[/]")
 
     frames: list[dict] = []
     start = time.monotonic()
@@ -814,7 +897,7 @@ def decode(
       canviz decode --input trace.json --dbc vehicle.dbc --output decoded.json
       canviz decode --input trace.json --dbc vehicle.dbc --format csv --output signals.csv
 
-    Or pipe to shell tools (stdout mode — omit --output):
+    Or pipe to shell tools (stdout mode - omit --output):
       canviz decode --input trace.json --dbc vehicle.dbc | jq '.[] | .signals'
       canviz decode --input trace.json --dbc vehicle.dbc --format csv | grep EngineRPM
     """
@@ -835,13 +918,13 @@ def decode(
     try:
         db = cantools.database.load_file(str(dbc))
     except Exception as exc:
-        console.print(f"  [red]Error:[/] DBC parse failed — {exc}", err=True)
+        console.print(f"  [red]Error:[/] DBC parse failed - {exc}", err=True)
         raise typer.Exit(code=1)
 
     try:
         raw = json.loads(input.read_text())
     except Exception as exc:
-        console.print(f"  [red]Error:[/] Could not read capture file — {exc}", err=True)
+        console.print(f"  [red]Error:[/] Could not read capture file - {exc}", err=True)
         raise typer.Exit(code=1)
 
     frames = raw.get("frames", raw) if isinstance(raw, dict) else raw
@@ -917,7 +1000,7 @@ def decode(
 
 j1939_app = typer.Typer(
     name="j1939",
-    help="J1939 decoder commands — inspect nodes, faults, and BAM log.",
+    help="J1939 decoder commands - inspect nodes, faults, and BAM log.",
     no_args_is_help=True,
 )
 app.add_typer(j1939_app, name="j1939")
@@ -981,7 +1064,7 @@ def j1939_status(
                       f"{node['frame_count']:,}", age)
         console.print(t)
     else:
-        console.print("\n  [dim]No nodes seen — enable decoder and connect to a J1939 bus.[/]")
+        console.print("\n  [dim]No nodes seen - enable decoder and connect to a J1939 bus.[/]")
 
     # Recent BAM
     bam = data.get("recent_bam", [])
@@ -1017,7 +1100,7 @@ def j1939_status(
             31: "Condition exists",
         }
         for f in dm1:
-            fmi_txt = f"{f['fmi']} — {_FMI.get(f['fmi'], 'See SAE J1939-73')}"
+            fmi_txt = f"{f['fmi']} - {_FMI.get(f['fmi'], 'See SAE J1939-73')}"
             lamps   = [k for k, v in f.get("lamps", {}).items() if v == "Active"]
             lamp_str= ", ".join(lamps) if lamps else "None"
             t.add_row(str(f["spn"]),

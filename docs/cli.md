@@ -51,9 +51,26 @@ canviz serve [OPTIONS]
 canviz serve --interface gs_usb
 ```
 
-**Headless - API + WebSocket only, browser does not open:**
+**Auto-connect on startup:**
+
+When you pass `--interface` and `--channel`, CANviz automatically POSTs to `/connect` as soon as the server is ready. You land in the browser already live - no need to click Connect in the UI.
+
+```bash
+# slcan - connects and opens browser automatically
+canviz serve --interface slcan --channel COM9 --bitrate 250000
+
+# Same, also enables J1939 decoder immediately
+canviz serve --interface slcan --channel COM9 --bitrate 250000 --j1939
 ```
-canviz serve --interface socketcan --channel can0 --headless
+
+Running bare `canviz` with no flags starts the server and opens the browser, but does **not** auto-connect - use the Connection panel in the UI to connect.
+
+**Headless - API + WebSocket only, browser does not open:**
+```bash
+canviz serve --interface socketcan --channel can0 --bitrate 250000 --headless
+
+# Headless + auto-connect + J1939 enabled (SSH / Pi workflow)
+canviz serve --interface slcan --channel COM9 --bitrate 250000 --headless --j1939
 ```
 
 Use `--headless` when running CANviz over SSH, in Docker, or as part of an automated pipeline where another process will consume the WebSocket stream. The full REST API and `/ws/frames` WebSocket are still available - only the `webbrowser.open()` call is skipped.
@@ -65,6 +82,7 @@ Use `--headless` when running CANviz over SSH, in Docker, or as part of an autom
 | `--host` | `127.0.0.1` | Host to bind (use `0.0.0.0` to expose on the network) |
 | `--port` | `8080` | Port to listen on |
 | `--headless` | off | Skip opening a browser |
+| `--j1939` | off | Auto-enable J1939 decoder after connecting |
 | `--log-level` | `info` | `debug` · `info` · `warning` · `error` |
 
 > **Tip - SSH users:** Run `canviz serve --headless` on the remote machine, then use SSH port forwarding to access the UI from your local browser:
@@ -392,8 +410,8 @@ Adds PGN and SA columns directly in the SSH terminal. No browser or port forward
 ### Inspect J1939 faults headlessly
 
 ```bash
-# Start server on remote machine
-canviz serve --interface socketcan --channel can0 --bitrate 250000 --headless &
+# Start server on remote machine - auto-connects and enables J1939
+canviz serve --interface socketcan --channel can0 --bitrate 250000 --headless --j1939 &
 
 # From your laptop - check fault codes
 canviz j1939 status
@@ -448,7 +466,7 @@ canviz decode --input drive_cycle.json --dbc vehicle.dbc --format csv --output d
 ### Automated test bench - CI/CD
 
 ```bash
-# Start headless server, wait for it, run test, shut down
+# Start headless server with virtual bus - auto-connects immediately
 canviz serve --interface virtual --headless &
 SERVER_PID=$!
 sleep 2
@@ -492,5 +510,5 @@ After installing, press `Tab` after `canviz` to see subcommands, and `Tab` again
 - `canviz monitor --j1939` decodes PGN names and SA addresses but does not decode signal values (RPM, speed, temperature) inside each message. For full signal decode load a J1939 DBC file in the browser UI or use `canviz decode` with a J1939-compatible DBC.
 - `canviz j1939 status` requires `canviz serve` to be running - it queries the server's REST API. It does not work standalone without a server.
 - `canviz capture` stores raw bytes only. Signal decoding happens in the `decode` step, not at capture time - this keeps the capture loop fast and the capture file format stable even if the DBC changes.
-- `--headless` still opens port 8080. If deploying on a shared or remote machine, you are responsible for firewall rules.
+- `canviz serve` auto-connects when `--interface` and `--channel` are provided. Running bare `canviz` (no flags) opens the browser only - use the Connection panel to connect manually.
 - `canviz monitor` colour coding is based on byte sum delta - it is a heuristic to show "something changed", not a precise signal-level diff. Use the browser UI for signal-level detail.

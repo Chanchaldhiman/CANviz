@@ -32,6 +32,7 @@ dependencies = [
     # J1939 PGN/SPN database - Apache 2.0, CSS Electronics (~100 KB)
     # Provides ~1000+ PGN definitions. Falls back to built-in 52-PGN table if unavailable.
     "pretty_j1939>=0.0.4",
+    "httpx>=0.27",
 ]
 
 [project.urls]
@@ -57,7 +58,6 @@ re = [
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.24",
-    "httpx>=0.27",
     "ruff>=0.4",
 ]
 
