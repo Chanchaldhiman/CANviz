@@ -192,6 +192,7 @@ def _run_serve(
 
     def _auto_connect(do_connect: bool = True) -> None:
         import urllib.request
+        
         base = f"http://{host}:{port}"
         # Wait for server to be ready (up to 15s)
         for _ in range(60):
