@@ -17,7 +17,6 @@ from canviz.routers.replay import router as replay_router, set_broadcast_fn
 from canviz.static_serving import mount_frontend
 from canviz.routers import stats as stats_router
 from canviz.routers.j1939 import router as j1939_router
-from canviz.j1939_store import j1939_store
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request

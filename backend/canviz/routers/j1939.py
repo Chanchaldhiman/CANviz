@@ -47,7 +47,8 @@ async def debug_pgn_db():
     and the first 5 entries so we can see the actual structure.
     Only used during development to diagnose pretty_j1939 loading issues.
     """
-    import pathlib, json as _json
+    import pathlib
+    import json as _json
     try:
         import pretty_j1939  # type: ignore
         pkg_dir = pathlib.Path(pretty_j1939.__file__).parent
