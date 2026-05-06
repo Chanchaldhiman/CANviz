@@ -73,7 +73,7 @@ canviz --interface virtual
 
 ## What You Get
 
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
+See [CHANGELOG.md](docs/CHANGELOG.md) for full version history.
 
 ### Live message table
 
