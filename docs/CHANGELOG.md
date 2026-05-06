@@ -5,7 +5,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## v0.3.2 -- CANopen CiA 301 + CiA 402
+## v0.3.1 -- CANopen CiA 301 + CiA 402
 
 **CANopen decoder** -- passive protocol intelligence for robotics, industrial
 automation, and motion control.
@@ -30,10 +30,6 @@ automation, and motion control.
 ### Fixed
 - `ValueError: Unknown format code 'X' for object of type 'str'` in `full_status()` when CiA 402 default statusword was stored as formatted string instead of int
 - `bus.py` log format string had 4 specifiers but 3 arguments -- crashed on every slcan connection
-
-### Changed
-- Version bumped to 0.3.2
-- `pyproject.toml` description updated to mention protocol decoders
 
 ---
 
@@ -91,7 +87,7 @@ agriculture, and marine networks.
 
 ---
 
-## v0.1.x -- Core Release
+## v0.1.3 -- Core Release
 
 - PyPI package `canviz` -- `pip install canviz` published
 - Package rename `canvaz` to `canviz` (original name was taken)
