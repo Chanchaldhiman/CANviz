@@ -32,6 +32,48 @@ export interface J1939Info {
   }> | null;
 }
 
+export interface CANopenInfo {
+  frame_type: string;   // "NMT" | "SYNC" | "EMCY" | "TPDO1" | "SDO-req" | "Heartbeat" etc.
+  node_id: number | null;
+  cob_id_hex: string;
+  detail?: string;
+  // EMCY-specific
+  emcy?: {
+    error_code: number;
+    error_code_hex: string;
+    error_name: string;
+    error_register: number;
+    error_register_flags: string[];
+    manufacturer_data: string;
+  };
+  // PDO-specific
+  pdo_index?: number;
+  is_tx?: boolean;
+  data_hex?: string;
+  pdo_signals?: Array<{ name: string; value: number; unit: string }>;
+  cia402_state?: string;
+  cia402_statusword?: string;
+  // SDO-specific
+  sdo_index?: string;
+  sdo_sub?: number;
+  sdo_desc?: string;
+  //data_hex?: string;
+  value_int?: number | null;
+  sdo_transaction?: {
+    node_id: number;
+    index: string;
+    subindex: number;
+    request_cmd: string;
+    response_cmd: string;
+    data_hex: string;
+    object_name?: string;
+  };
+  // NMT-specific
+  nmt?: { cs: number; target_node: number; description: string };
+  // Heartbeat-specific
+  nmt_state?: string;
+}
+
 export interface CanFrame {
   // Backend sends id as hex string e.g. "0x1a2" — normalised to number in frameStore
   id: string | number;
@@ -44,6 +86,7 @@ export interface CanFrame {
   signals?: DecodedSignal[];
   decoded_signals?: DecodedSignal[];
   j1939?: J1939Info;
+  canopen?: CANopenInfo;
 }
 
 export interface DecodedSignal {
@@ -68,6 +111,7 @@ export interface FrameRow {
   flashKey: number;         // bumped on every update, triggers flash
   decodedSignals?: DecodedSignal[];
   j1939?: J1939Info;        // Present when J1939 mode is on and frame is extended
+  canopen?: CANopenInfo;        // Present when CANopen mode is on
 }
 
 // ============================================================

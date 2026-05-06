@@ -2,7 +2,7 @@
 canviz/server.py
 ----------------
 Assembles the FastAPI app - mounts all routers, configures CORS
-(browser → localhost needs it), and wires startup/shutdown via lifespan.
+(browser -> localhost needs it), and wires startup/shutdown via lifespan.
 """
 
 from contextlib import asynccontextmanager
@@ -17,6 +17,7 @@ from canviz.routers.replay import router as replay_router, set_broadcast_fn
 from canviz.static_serving import mount_frontend
 from canviz.routers import stats as stats_router
 from canviz.routers.j1939 import router as j1939_router
+from canviz.routers.canopen import router as canopen_router
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -67,6 +68,7 @@ app.include_router(dbc.router)
 app.include_router(log.router)
 app.include_router(stats_router.router)
 app.include_router(j1939_router)
+app.include_router(canopen_router)
 app.include_router(replay_router)
 
 

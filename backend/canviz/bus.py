@@ -135,7 +135,7 @@ class BusManager:
             self._reader_loop(), name="can-reader"
         )
         log.info(
-            "Connected: interface=%s channel=%s bitrate=%d serial_baudrate=%d",
+            "Connected: interface=%s channel=%s bitrate=%d",
             interface, channel, bitrate,
         )
 

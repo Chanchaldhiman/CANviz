@@ -3,6 +3,7 @@ import { useFrameStore } from '../store/frameStore';
 import { useStatsStore } from '../store/statsStore';
 import { useJ1939Store } from '../store/j1939Store';
 import type { CanFrame } from '../types/can';
+import { useCANopenStore } from '../store/canopenStore';
 
 function getWsUrl(): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -22,6 +23,7 @@ export function useWebSocket() {
   const ingestFrame      = useFrameStore((s) => s.ingestFrame);
   const updateStats      = useStatsStore((s) => s.updateStats);
   const updateJ1939Stats = useJ1939Store((s) => s.updateFromStats);
+  const updateCanopenStats = useCANopenStore((s) => s.updateFromStats);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -42,6 +44,10 @@ export function useWebSocket() {
           // J1939 status is piggy-backed on every stats payload
           if (msg.j1939_mode !== undefined || msg.j1939_detected !== undefined) {
             updateJ1939Stats(msg);
+          }
+          // CANopen status is also piggy-backed on stats
+          if (msg.canopen_mode !== undefined || msg.canopen_detected !== undefined) {
+            updateCanopenStats(msg);
           }
         } else {
           // "frame" type — pass to frame store (includes optional j1939 field)
@@ -67,7 +73,7 @@ export function useWebSocket() {
     ws.onerror = () => {
       // onclose handles reconnect
     };
-  }, [ingestFrame, updateStats, updateJ1939Stats]);
+  }, [ingestFrame, updateStats, updateJ1939Stats, updateCanopenStats]);
 
   useEffect(() => {
     mountedRef.current = true;

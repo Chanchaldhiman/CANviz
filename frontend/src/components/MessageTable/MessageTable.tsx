@@ -8,7 +8,8 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useFrameStore } from '../../store/frameStore';
 import { useJ1939Store } from '../../store/j1939Store';
-import type { FrameRow, DecodedSignal } from '../../types/can';
+import { useCANopenStore } from '../../store/canopenStore';
+import type { FrameRow, DecodedSignal, CANopenInfo } from '../../types/can';
 
 const FLASH_DURATION_MS = 400;
 const ROW_HEIGHT = 30;
@@ -198,11 +199,128 @@ const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
   },
 ];
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── CANopen helpers ───────────────────────────────────────────────────────────
+
+const CANOPEN_TYPE_COLORS: Record<string, string> = {
+  NMT:        'var(--accent-amber)',
+  SYNC:       'var(--text-muted)',
+  TIME:       'var(--text-muted)',
+  EMCY:       'var(--accent-red)',
+  Heartbeat:  'var(--accent-green)',
+  TPDO1:      '#61afef',
+  TPDO2:      '#61afef',
+  TPDO3:      '#61afef',
+  TPDO4:      '#61afef',
+  RPDO1:      '#c678dd',
+  RPDO2:      '#c678dd',
+  RPDO3:      '#c678dd',
+  RPDO4:      '#c678dd',
+  'SDO-req':  'var(--text-muted)',
+  'SDO-resp': 'var(--accent-green)',
+};
+
+function canopenTypeColor(frameType: string): string {
+  return CANOPEN_TYPE_COLORS[frameType] ?? 'var(--text-secondary)';
+}
+
+function canopenDetail(co: CANopenInfo): string {
+  // SDO response with paired transaction -- show object name + value
+  if (co.sdo_transaction && co.sdo_transaction.object_name) {
+    const t = co.sdo_transaction;
+    const val = t.data_hex ?? '';
+    return `${t.object_name}${val ? ' = ' + val : ''}`;
+  }
+  // Heartbeat -- just the NMT state
+  if (co.frame_type === 'Heartbeat' && co.nmt_state) {
+    return co.nmt_state;
+  }
+  // EMCY -- error name
+  if (co.frame_type === 'EMCY' && co.emcy) {
+    return co.emcy.error_name;
+  }
+  // NMT command
+  if (co.frame_type === 'NMT' && co.nmt) {
+    return co.nmt.description;
+  }
+  // PDO with signals (EDS decoded)
+  if (co.pdo_signals?.length) {
+    return co.pdo_signals.map((s) => `${s.name}=${s.value}`).join('  ');
+  }
+  // Generic detail string
+  return co.detail ?? '';
+}
+
+// ── CANopen column definitions ────────────────────────────────────────────────
+
+const CANOPEN_COLUMNS: ColumnDef<FrameRow>[] = [
+  {
+    id: 'co_type',
+    header: 'Type',
+    size: 80,
+    cell: ({ row }) => {
+      const co = row.original.canopen;
+      if (!co) return <span style={styles.coAbsent}>—</span>;
+      return (
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            color: canopenTypeColor(co.frame_type),
+          }}
+        >
+          {co.frame_type}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'co_node',
+    header: 'Node',
+    size: 50,
+    cell: ({ row }) => {
+      const co = row.original.canopen;
+      if (!co || co.node_id === null) return <span style={styles.coAbsent}>—</span>;
+      return (
+        <span className="mono" style={{ fontSize: 11, color: 'var(--accent-amber)' }}>
+          0x{co.node_id.toString(16).toUpperCase().padStart(2, '0')}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'co_info',
+    header: 'Protocol Info',
+    size: 200,
+    cell: ({ row }) => {
+      const co = row.original.canopen;
+      if (!co) return <span style={styles.coAbsent}>—</span>;
+      const detail = canopenDetail(co);
+      return (
+        <span
+          style={{
+            fontSize: 11,
+            color: co.frame_type === 'EMCY' ? 'var(--accent-red)' : 'var(--text-secondary)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'block',
+            maxWidth: 190,
+          }}
+          title={detail}
+        >
+          {detail}
+        </span>
+      );
+    },
+  },
+];
 export function MessageTable() {
   const frameList   = useFrameStore((s) => s.frameList);
   const showDecoded = useFrameStore((s) => s.filter.showDecoded);
   const j1939Mode   = useJ1939Store((s) => s.mode);
+  const canopenMode = useCANopenStore((s) => s.mode);
 
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
@@ -229,13 +347,13 @@ export function MessageTable() {
     }
   }, [frameList]);
 
-  // Append J1939 columns dynamically when the decoder is enabled
-  const columns = useMemo<ColumnDef<FrameRow>[]>(
-    () => j1939Mode === 'on'
-      ? [...BASE_COLUMNS, ...J1939_COLUMNS]
-      : BASE_COLUMNS,
-    [j1939Mode],
-  );
+  // Append protocol columns dynamically based on active decoders
+  const columns = useMemo<ColumnDef<FrameRow>[]>(() => {
+    let cols: ColumnDef<FrameRow>[] = [...BASE_COLUMNS];
+    if (j1939Mode   === 'on') cols = [...cols, ...J1939_COLUMNS];
+    if (canopenMode === 'on') cols = [...cols, ...CANOPEN_COLUMNS];
+    return cols;
+  }, [j1939Mode, canopenMode]);
 
   const table = useReactTable({
     data: frameList,
@@ -383,7 +501,21 @@ export function MessageTable() {
                         DM1 ({frame.j1939.dm1_faults.length})
                       </span>
                     )}
-                    {frame.isExtended && !frame.j1939 && (
+                    {frame.canopen?.frame_type === 'EMCY' && (
+                      <span className="badge badge-red" title={frame.canopen.emcy?.error_name ?? 'Emergency'}>
+                        EMCY
+                      </span>
+                    )}
+                    {frame.canopen?.sdo_transaction && (
+                      <span
+                        className="badge badge-green"
+                        title={frame.canopen.sdo_transaction.object_name ?? 'SDO paired'}
+                      >
+                        SDO
+                      </span>
+                    )}
+                    {/* EXT badge: only for extended-ID frames that are not J1939 or CANopen */}
+                    {frame.isExtended && !frame.j1939 && !frame.canopen && (
                       <span className="badge badge-muted">EXT</span>
                     )}
                     {frame.isFd && <span className="badge badge-blue">FD</span>}
@@ -467,6 +599,10 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-muted)',
   },
   j1939Absent: {
+    color: 'var(--text-muted)',
+    fontSize: 12,
+  },
+  coAbsent: {
     color: 'var(--text-muted)',
     fontSize: 12,
   },

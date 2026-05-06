@@ -24,6 +24,7 @@ from starlette.websockets import WebSocketState
 
 from canviz.dbc_store import dbc_store
 from canviz.j1939_store import j1939_store
+from canviz.canopen_store import canopen_store
 from canviz.stats_store import stats
 
 log = logging.getLogger("canviz.ws")
@@ -87,11 +88,11 @@ class WSBroadcaster:
         if drained:
             log.debug("Drained %d stale frames from broadcaster queue.", drained)
 
-    # ── Frame ingestion (called from BusManager callback — sync) ─────────────
+    # ── Frame ingestion (called from BusManager callback - sync) ─────────────
 
     def on_frame(self, msg) -> None:
         """
-        Sync callback — called from the bus reader thread.
+        Sync callback - called from the bus reader thread.
         Converts the python-can Message to a JSON-serialisable dict
         and puts it on the queue for the async broadcaster.
         """
@@ -109,8 +110,15 @@ class WSBroadcaster:
         # DBC signal decode
         signals = dbc_store.decode(msg.arbitration_id, bytes(msg.data))
 
-        # J1939 decode — runs regardless of DBC; enriches frame if mode is "on"
+        # J1939 decode - runs on extended-ID frames; returns None for 11-bit frames
         j1939_info = j1939_store.process_frame(
+            arb_id=msg.arbitration_id,
+            data=bytes(msg.data),
+            is_extended=msg.is_extended_id,
+        )
+
+        # CANopen decode - runs on 11-bit frames; returns None for extended-ID frames
+        canopen_info = canopen_store.process_frame(
             arb_id=msg.arbitration_id,
             data=bytes(msg.data),
             is_extended=msg.is_extended_id,
@@ -130,6 +138,9 @@ class WSBroadcaster:
 
         if j1939_info is not None:
             frame["j1939"] = j1939_info
+
+        if canopen_info is not None:
+            frame["canopen"] = canopen_info
 
         try:
             self._queue.put_nowait(frame)
@@ -161,16 +172,16 @@ class WSBroadcaster:
                 await self.unregister(ws)
 
     async def _stats_loop(self) -> None:
-        """Broadcast a stats + J1939 status snapshot every second."""
+        """Broadcast a stats + J1939 + CANopen status snapshot every second."""
         while True:
             await asyncio.sleep(1)
             if not self._clients:
                 continue
 
-            # Merge stats and J1939 status into one payload
             payload = json.dumps({
                 **stats.snapshot(),
                 **j1939_store.status_dict(),
+                **canopen_store.status_dict(),
             })
 
             dead: list[WebSocket] = []
