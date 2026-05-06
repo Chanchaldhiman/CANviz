@@ -46,6 +46,7 @@
 
   /* Sizing */
   --sidebar-width:      280px;
+  --rightpanel-width:   360px;
   --topbar-height:      44px;
   --bottompanel-height: 320px;
   --radius-sm: 3px;
@@ -173,19 +174,20 @@ body {
 .app-shell {
   display: grid;
   grid-template-rows: var(--topbar-height) 1fr var(--bottompanel-height);
-  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr var(--rightpanel-width);
   grid-template-areas:
-    "topbar topbar"
-    "sidebar main"
-    "sidebar bottom";
+    "topbar     topbar topbar"
+    "sidebar    main   rightpanel"
+    "sidebar    bottom bottom";
   height: 100vh;
   width: 100vw;
 }
 
-.app-topbar   { grid-area: topbar; }
-.app-sidebar  { grid-area: sidebar; }
-.app-main     { grid-area: main; }
-.app-bottom   { grid-area: bottom; }
+.app-topbar      { grid-area: topbar; }
+.app-sidebar     { grid-area: sidebar; }
+.app-main        { grid-area: main; }
+.app-bottom      { grid-area: bottom; }
+.app-rightpanel  { grid-area: rightpanel; }
 
 /* ============================================================
    Panel base

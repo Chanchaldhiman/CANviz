@@ -673,8 +673,23 @@ class EdsStore:
 
     def decode_pdo(self, node_id: int, pdo_index: int, is_tx: bool, data: bytes) -> Optional[dict]:
         """
-        Decode a PDO payload using the loaded EDS.
-        Returns {signals: [{name, value, unit}]} or None.
+        Decode a PDO payload directly from EDS mapping objects. Fully offline.
+
+        The canopen library's node.tpdo[n] infrastructure requires a live SDO
+        read to initialise the mapping (node.tpdo.read()), which we cannot do
+        in passive capture mode. Instead we read the mapping parameters directly
+        from the object dictionary that was parsed from the EDS file, then
+        extract values from the raw PDO bytes manually.
+
+        Mapping object layout per CiA 301:
+          TPDO1 mapping = OD index 0x1A00 (TPDO2=0x1A01, etc.)
+          RPDO1 mapping = OD index 0x1600 (RPDO2=0x1601, etc.)
+          Each sub-entry (sub 1..N) is UINT32:
+            bits 31-16 = object index
+            bits 15-8  = object subindex
+            bits 7-0   = bit length in PDO payload
+
+        Data extraction: little-endian bit stream from byte 0 onwards.
         """
         if not self._canopen_available_check():
             return None
@@ -682,31 +697,93 @@ class EdsStore:
             if self._network is None:
                 return None
             try:
-                node = self._network.nodes.get(node_id)
-                if node is None:
-                    # Try mapping this node ID into the network
-                    self._network.add_node(node_id, self._get_first_od())
-                    node = self._network.nodes.get(node_id)
-                if node is None:
+                od = self._get_first_od()
+                if od is None:
                     return None
 
-                pdo_map = node.tpdo if is_tx else node.rpdo
-                pdo = pdo_map.get(pdo_index)
-                if pdo is None:
+                # Locate the mapping record in the OD
+                map_index = (0x1A00 if is_tx else 0x1600) + (pdo_index - 1)
+                if map_index not in od:
+                    log.debug("PDO decode: mapping 0x%04X not in EDS", map_index)
                     return None
 
-                pdo.data = data
+                map_obj = od[map_index]
+
+                # Sub 0 = number of mapped objects
+                try:
+                    num_entries = int(map_obj[0].default)
+                except Exception:
+                    return None
+                if num_entries == 0:
+                    return None
+
+                # Signed CANopen data types: INT8=0x02, INT16=0x03, INT32=0x04, INT64=0x15
+                _SIGNED_TYPES = {0x02, 0x03, 0x04, 0x15, 0x10}   # INT8/16/32/64, INT24
+
+                data_bytes = bytes(data)
+                data_int   = int.from_bytes(data_bytes, "little") if data_bytes else 0
+                total_bits = len(data_bytes) * 8
+
                 signals = []
-                for var in pdo:
+                bit_pos = 0
+
+                for sub in range(1, num_entries + 1):
                     try:
-                        signals.append({
-                            "name":  var.name,
-                            "value": var.phys,
-                            "unit":  getattr(var, "unit", ""),
-                        })
+                        entry   = map_obj[sub]
+                        map_val = int(entry.default)
                     except Exception:
                         continue
+
+                    if map_val == 0:
+                        continue   # dummy / padding
+
+                    obj_index    = (map_val >> 16) & 0xFFFF
+                    obj_subindex = (map_val >> 8)  & 0xFF
+                    bit_len      = map_val & 0xFF
+
+                    if bit_len == 0:
+                        continue
+                    if bit_pos + bit_len > total_bits:
+                        log.debug("PDO decode: bit_pos %d + bit_len %d > data bits %d",
+                                  bit_pos, bit_len, total_bits)
+                        break
+
+                    # Extract bits from little-endian stream
+                    mask    = (1 << bit_len) - 1
+                    raw_val = (data_int >> bit_pos) & mask
+                    bit_pos += bit_len
+
+                    # Look up name and data type from OD
+                    name      = f"0x{obj_index:04X}:{obj_subindex}"
+                    unit      = _BUILTIN_OBJECTS.get((obj_index, obj_subindex), {}).get("unit", "")
+                    is_signed = False
+
+                    try:
+                        if obj_index in od:
+                            obj = od[obj_index]
+                            # VAR objects have data_type directly; RECORD/ARRAY do not
+                            if hasattr(obj, "data_type"):
+                                name      = obj.parameter_name
+                                is_signed = (obj.data_type in _SIGNED_TYPES)
+                            elif obj_subindex in obj:
+                                sub_obj   = obj[obj_subindex]
+                                name      = sub_obj.parameter_name
+                                is_signed = (sub_obj.data_type in _SIGNED_TYPES)
+                    except Exception:
+                        pass
+
+                    # Sign-extend if the data type is signed
+                    if is_signed and bit_len > 1 and raw_val >= (1 << (bit_len - 1)):
+                        raw_val -= (1 << bit_len)
+
+                    signals.append({
+                        "name":  name,
+                        "value": float(raw_val),
+                        "unit":  unit,
+                    })
+
                 return {"signals": signals} if signals else None
+
             except Exception as exc:
                 log.debug("PDO decode error node=%d pdo%d: %s", node_id, pdo_index, exc)
                 return None
@@ -966,6 +1043,25 @@ class CANopenStore:
                             if rec:
                                 rec.cia402_mode = mode_name
                         result["cia402_mode"] = mode_name
+
+        # Best-effort CiA 402 statusword without EDS:
+        # TPDO1 default mapping (CiA 402 spec) places Statusword in bytes 0-1.
+        # Only applied when no EDS is loaded -- EDS path above is authoritative.
+        # Annotated as "(default)" so users know it assumed standard TPDO1 mapping.
+        if (cob.pdo_index == 1 and cob.is_tx
+                and len(data) >= 2
+                and not eds_store.loaded
+                and cob.node_id is not None):
+            sw = data[0] | (data[1] << 8)
+            state = _decode_cia402_statusword(sw)
+            result["cia402_state_default"] = state
+            result["cia402_statusword"] = f"0x{sw:04X}"
+            with self._lock:
+                rec = self._nodes.get(cob.node_id)
+                if rec and rec.cia402_state is None:
+                    # Store state string with annotation; statusword as int (matches NodeRecord type)
+                    rec.cia402_state      = f"{state} (default)"
+                    rec.cia402_statusword = sw
 
         return result
 

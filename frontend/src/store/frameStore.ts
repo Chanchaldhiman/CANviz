@@ -107,6 +107,20 @@ export const useFrameStore = create<FrameStore>((set, get) => ({
       addSignalValues(signals, tSec);
     }
 
+    // Feed CANopen PDO signals (EDS decoded) into the plot store.
+    // Signals are shaped as {name, value, unit} from canopen_store._handle_pdo.
+    // We synthesise message_name from node_id so the plot key matches other signals.
+    if (frame.canopen?.pdo_signals?.length && frame.canopen.node_id != null) {
+      const tSec = nowMs / 1000;
+      const msgName = `CANopen 0x${frame.canopen.node_id.toString(16).toUpperCase().padStart(2, '0')}`;
+      const pdoSignals = frame.canopen.pdo_signals.map((sig) => ({
+        name:         sig.name,
+        message_name: msgName,
+        value:        sig.value,
+      }));
+      addSignalValues(pdoSignals, tSec);
+    }
+
     const frames = new Map(store.frames);
     frames.set(numericId, updated);
 

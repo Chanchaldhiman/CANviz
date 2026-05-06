@@ -22,7 +22,21 @@ from canviz.routers.canopen import router as canopen_router
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+import logging
 
+# ── Suppress high-frequency poll noise from uvicorn access log ────────────────
+# /status is polled every 5s by useStatusSync; /canopen/status every 2s.
+# These are always-200 background heartbeats - hiding them makes real requests
+# visible. All other paths (connect, send, errors, WebSocket) stay visible.
+
+class _SuppressPollLog(logging.Filter):
+    _MUTED = {"/status", "/canopen/status"}
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not any(p in msg for p in self._MUTED)
+
+logging.getLogger("uvicorn.access").addFilter(_SuppressPollLog())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

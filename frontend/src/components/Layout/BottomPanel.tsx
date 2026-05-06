@@ -3,18 +3,12 @@ import { SendFramePanel } from '../SendFramePanel/SendFramePanel';
 import { LogControls } from '../LogControls/LogControls';
 import { ReplayPanel } from '../ReplayPanel/ReplayPanel';
 import { SignalPlot } from '../SignalPlot/SignalPlot';
-import { J1939Panel } from '../J1939Panel/J1939Panel';
-import { useJ1939Store } from '../../store/j1939Store';
-import { CANopenPanel } from '../CANopenPanel/CANopenPanel';
-import { useCANopenStore } from '../../store/canopenStore';
 
 const TABS = [
   { id: 'send',   label: 'Send Frame' },
   { id: 'log',    label: 'Record' },
   { id: 'replay', label: 'Replay' },
   { id: 'plot',   label: 'Plot' },
-  { id: 'j1939',  label: 'J1939' },
-  { id: 'canopen', label: 'CANopen' },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -38,15 +32,6 @@ export function BottomPanel() {
   const [dragging, setDragging]   = useState(false);
   const dragStartY = useRef(0);
   const dragStartH = useRef(0);
-
-  // Show amber dot on J1939 tab when traffic auto-detected but decoder is off
-  const j1939Detected = useJ1939Store((s) => s.autoDetected);
-  const j1939Mode     = useJ1939Store((s) => s.mode);
-  const showJ1939Dot  = j1939Detected && j1939Mode === 'off';
-
-  const canopenDetected = useCANopenStore((s) => s.autoDetected);
-  const canopenMode     = useCANopenStore((s) => s.mode);
-  const showCanopenDot  = canopenDetected && canopenMode === 'off';
 
   useEffect(() => {
     document.documentElement.style.setProperty('--bottompanel-height', `${height}px`);
@@ -96,14 +81,7 @@ export function BottomPanel() {
             style={{ position: 'relative' }}
           >
             {tab.label}
-            {/* Amber dot when J1939 traffic detected but decoder off */}
-            {tab.id === 'j1939' && showJ1939Dot && (
-              <span style={styles.tabDot} title="J1939 traffic detected — enable decoder" />
-            )}
 
-            {tab.id === 'canopen' && showCanopenDot && (
-              <span style={styles.tabDot} title="CANopen traffic detected -- enable decoder" />
-            )}
           </button>
         ))}
       </div>
@@ -114,8 +92,6 @@ export function BottomPanel() {
         {activeTab === 'log'    && <LogControls />}
         {activeTab === 'replay' && <ReplayPanel />}
         {activeTab === 'plot'   && <SignalPlot />}
-        {activeTab === 'j1939'  && <J1939Panel />}
-        {activeTab === 'canopen'  && <CANopenPanel />}
       </div>
     </div>
   );
