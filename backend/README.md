@@ -40,35 +40,6 @@ That is it. CANviz detects your connected adapter and opens the browser automati
 
 > **Not sure which interface to select?** See the [Device Guide](https://github.com/Chanchaldhiman/CANviz/blob/main/docs/interfaceguide.md).
 
-### All connection options
-
-```bash
-# Windows -- gs_usb / Candlelight firmware (default, no COM port)
-canviz
-
-# Windows -- slcan / COM port
-canviz --interface slcan --channel COM3 --bitrate 500000
-
-# Raspberry Pi / Linux
-sudo ip link set can0 up type can bitrate 500000
-canviz --interface socketcan --channel can0
-
-# Remote machine over SSH
-ssh -L 8080:localhost:8080 user@remote-ip   # on your laptop
-canviz --interface socketcan --channel can0  # on the remote machine
-# then open http://localhost:8080 locally
-
-# Headless -- API only, no browser
-canviz serve --headless --port 8080
-
-# No hardware -- software virtual bus
-canviz --interface virtual
-```
-
-> **If your adapter shows a COM port** in Device Manager, it is running slcan firmware.
-> Use `--interface slcan --channel COM3`. Candlelight devices enumerate as `gs_usb /
-> WinUSB` with no COM port.
-
 ---
 
 ## What You Get
