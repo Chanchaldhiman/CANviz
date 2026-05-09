@@ -421,32 +421,10 @@ def _sdo_description(cmd: int, is_request: bool) -> str:
         if scs == 0:
             return "Download Segment Response"
         if scs == 4:
-            # CiA 301 sec 7.2.4.3.17 -- abort codes in bytes 4-7 (UINT32 LE)
-            _ABORT = {
-                0x05030000: "Toggle bit not alternated",
-                0x05040000: "SDO protocol timed out",
-                0x05040001: "Command specifier not valid",
-                0x05040005: "Out of memory",
-                0x06010000: "Unsupported access to object",
-                0x06010001: "Read of write-only object",
-                0x06010002: "Write of read-only object",
-                0x06020000: "Object does not exist",
-                0x06040041: "Object cannot be mapped to PDO",
-                0x06040042: "PDO length exceeded",
-                0x06040043: "Parameter incompatibility",
-                0x06040047: "Internal incompatibility",
-                0x06060000: "Hardware error",
-                0x06070010: "Data type mismatch (length)",
-                0x06090011: "Sub-index does not exist",
-                0x06090030: "Value range exceeded",
-                0x08000000: "General error",
-                0x08000020: "Data cannot be transferred",
-                0x08000021: "Data cannot be transferred (local control)",
-                0x08000022: "Data cannot be transferred (device state)",
-            }
-            abort_code = int.from_bytes(b[4:8], "little") if len(b) >= 8 else 0
-            abort_msg  = _ABORT.get(abort_code, f"0x{abort_code:08X}")
-            return f"SDO Abort: {abort_msg}"
+            # Abort Transfer -- this function only receives the command byte.
+            # Full abort code decode (bytes 4-7) is handled in _handle_sdo_response
+            # where the complete frame data is available.
+            return "SDO Abort"
         return f"SDO Response (scs={scs})"
 
 
