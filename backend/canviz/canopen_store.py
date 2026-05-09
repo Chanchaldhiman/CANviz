@@ -157,8 +157,8 @@ _BUILTIN_OBJECTS: dict[tuple[int, int], dict] = {
     (0x60B2, 0): {"name": "Torque Offset",                      "unit": "0.1%"},
     (0x60B8, 0): {"name": "Touch Probe Function",               "unit": ""},
     (0x60B9, 0): {"name": "Touch Probe Status",                 "unit": ""},
-    (0x60BA, 0): {"name": "Touch Probe Pos1 Pos Value",         "unit": "counts"},
-    (0x60BB, 0): {"name": "Touch Probe Pos1 Neg Value",         "unit": "counts"},
+    (0x60BA, 0): {"name": "Touch Probe 1 Positive Edge Position","unit": "counts"},
+    (0x60BB, 0): {"name": "Touch Probe 1 Negative Edge Position","unit": "counts"},
     (0x60C2, 0): {"name": "Interpolation Time Period: Value",   "unit": ""},
     (0x60C2, 1): {"name": "Interpolation Time Period: Index",   "unit": ""},
     (0x60C5, 0): {"name": "Max Acceleration",                   "unit": "counts/s2"},
@@ -169,7 +169,7 @@ _BUILTIN_OBJECTS: dict[tuple[int, int], dict] = {
     (0x60FA, 0): {"name": "Control Effort",                     "unit": "counts/s2"},
     (0x60FC, 0): {"name": "Position Demand Internal Value",     "unit": "counts"},
     (0x60FD, 0): {"name": "Digital Inputs",                     "unit": ""},
-    (0x60FE, 0): {"name": "Digital Outputs",                    "unit": ""},
+    (0x60FE, 0): {"name": "Digital Outputs: Physical Outputs",   "unit": ""},
     (0x60FF, 0): {"name": "Target Velocity",                    "unit": "counts/s"},
     (0x6502, 0): {"name": "Supported Drive Modes",              "unit": ""},
     # ── CiA 402 -- Factor Group ────────────────────────────────────────────────
@@ -193,17 +193,11 @@ _BUILTIN_OBJECTS: dict[tuple[int, int], dict] = {
     (0x6097, 0): {"name": "Acceleration Factor: Numerator",      "unit": ""},
     (0x6097, 1): {"name": "Acceleration Factor: Denominator",    "unit": ""},
     # ── CiA 402 -- Touch Probe ─────────────────────────────────────────────────
-    (0x60B8, 0): {"name": "Touch Probe Function",                "unit": ""},
-    (0x60B9, 0): {"name": "Touch Probe Status",                  "unit": ""},
-    (0x60BA, 0): {"name": "Touch Probe 1 Positive Edge Position","unit": "counts"},
-    (0x60BB, 0): {"name": "Touch Probe 1 Negative Edge Position","unit": "counts"},
     (0x60BC, 0): {"name": "Touch Probe 2 Positive Edge Position","unit": "counts"},
     (0x60BD, 0): {"name": "Touch Probe 2 Negative Edge Position","unit": "counts"},
     # ── CiA 402 -- Interpolated Position Mode (CSP) ───────────────────────────
     (0x60C0, 0): {"name": "Interpolation Sub Mode Select",       "unit": ""},
     (0x60C1, 0): {"name": "Interpolation Data Record sub0",      "unit": ""},
-    (0x60C2, 0): {"name": "Interpolation Time Period: Value",     "unit": ""},
-    (0x60C2, 1): {"name": "Interpolation Time Period: Index",     "unit": ""},
     (0x60C4, 0): {"name": "Interpolation Data Config: MaxBuf",   "unit": ""},
     (0x60C4, 1): {"name": "Interpolation Data Config: ActBuf",   "unit": ""},
     (0x60C4, 2): {"name": "Interpolation Data Config: BufOrg",   "unit": ""},
@@ -211,13 +205,9 @@ _BUILTIN_OBJECTS: dict[tuple[int, int], dict] = {
     (0x60C4, 4): {"name": "Interpolation Data Config: BufSize",  "unit": ""},
     (0x60C4, 5): {"name": "Interpolation Data Config: BufClear", "unit": ""},
     # ── CiA 402 -- Homing extended ────────────────────────────────────────────
-    (0x609A, 0): {"name": "Homing Acceleration",                 "unit": "counts/s2"},
     # ── CiA 402 -- Digital I/O ────────────────────────────────────────────────
-    (0x60FD, 0): {"name": "Digital Inputs",                      "unit": ""},
-    (0x60FE, 0): {"name": "Digital Outputs: Physical Outputs",   "unit": ""},
     (0x60FE, 1): {"name": "Digital Outputs: Bit Mask",           "unit": ""},
     # ── CiA 402 -- Torque control extended ───────────────────────────────────
-    (0x6076, 0): {"name": "Motor Rated Torque",                  "unit": "mNm"},
     (0x6410, 0): {"name": "Motor Data: Pole Pair Number",         "unit": ""},
     (0x6410, 1): {"name": "Motor Data: Max Current",             "unit": "mA"},
     (0x6410, 2): {"name": "Motor Data: Torque Constant",         "unit": "mNm/A"},
@@ -227,15 +217,11 @@ _BUILTIN_OBJECTS: dict[tuple[int, int], dict] = {
     # ── CiA 402 -- Position control extra ────────────────────────────────────
     (0x60F2, 0): {"name": "Positioning Option Code",             "unit": ""},
     (0x60F8, 0): {"name": "Max Slippage",                        "unit": "counts/s"},
-    (0x60FA, 0): {"name": "Control Effort",                      "unit": "counts/s2"},
     (0x60FB, 0): {"name": "Position Control Param: P Gain",      "unit": ""},
     (0x60FB, 1): {"name": "Position Control Param: I Gain",      "unit": ""},
     (0x60FB, 2): {"name": "Position Control Param: D Gain",      "unit": ""},
     (0x60FB, 3): {"name": "Position Control Param: Feedforward", "unit": ""},
     # ── CiA 402 -- Following error ────────────────────────────────────────────
-    (0x6065, 0): {"name": "Following Error Window",              "unit": "counts"},
-    (0x6066, 0): {"name": "Following Error Time Out",            "unit": "ms"},
-    (0x60F4, 0): {"name": "Following Error Actual Value",        "unit": "counts"},
     # ── ODrive-specific (common in robotics, index 0x3xxx range) ─────────────
     # ODrive uses standard CiA 402 objects + vendor objects at 0x3xxx
     # We only list the standard ones above; vendor objects need EDS
@@ -304,9 +290,9 @@ def _decode_cia402_statusword(sw: int) -> str:
     rtso    = sw & 0x0001   # bit 0: Ready to Switch On
     so      = sw & 0x0002   # bit 1: Switched On
     oe      = sw & 0x0004   # bit 2: Operation Enabled
-    fault   = sw & 0x0008   # bit 3: Fault
-    voe     = sw & 0x0010   # bit 4: Voltage Enabled
-    qs      = sw & 0x0020   # bit 5: Quick Stop (0 = active in older spec, 1 = inactive)
+    # bit 3: Fault      -- tested via sw & 0x0008 in state checks below
+    # bit 4: Voltage Enabled -- informational, not used in state decode
+    # bit 5: Quick Stop -- tested via sw & 0x0020 in state checks below
     sod     = sw & 0x0040   # bit 6: Switch On Disabled
 
     if sod:
@@ -435,7 +421,8 @@ def _sdo_description(cmd: int, is_request: bool) -> str:
         if scs == 0:
             return "Download Segment Response"
         if scs == 4:
-            abort_codes = {
+            # CiA 301 sec 7.2.4.3.17 -- abort codes in bytes 4-7 (UINT32 LE)
+            _ABORT = {
                 0x05030000: "Toggle bit not alternated",
                 0x05040000: "SDO protocol timed out",
                 0x05040001: "Command specifier not valid",
@@ -457,8 +444,9 @@ def _sdo_description(cmd: int, is_request: bool) -> str:
                 0x08000021: "Data cannot be transferred (local control)",
                 0x08000022: "Data cannot be transferred (device state)",
             }
-            if len(b"\x00") == 1:   # placeholder -- abort code in bytes 4-7
-                return "SDO Abort"
+            abort_code = int.from_bytes(b[4:8], "little") if len(b) >= 8 else 0
+            abort_msg  = _ABORT.get(abort_code, f"0x{abort_code:08X}")
+            return f"SDO Abort: {abort_msg}"
         return f"SDO Response (scs={scs})"
 
 
@@ -637,7 +625,7 @@ class EdsStore:
             try:
                 network = canopen.Network()
                 # add_node(node_id, object_dictionary_path) - standard canopen API
-                node = network.add_node(1, temp_path)
+                network.add_node(1, temp_path)  # registers OD under node 1
             finally:
                 os.unlink(temp_path)
 
@@ -1059,7 +1047,10 @@ class CANopenStore:
             with self._lock:
                 rec = self._nodes.get(cob.node_id)
                 if rec:
-                    rec.cia402_state      = f"{state}"
+                    # Always overwrite -- state changes every time Controlword
+                    # is written and TPDO1 carries the new Statusword.
+                    # The is_None guard prevented any update after the first frame.
+                    rec.cia402_state      = f"{state} (default)"
                     rec.cia402_statusword = sw
 
         return result
