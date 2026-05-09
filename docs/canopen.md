@@ -2,6 +2,10 @@
 
 > CANviz v0.3.1 -- CiA 301 (Communication Profile) + CiA 402 (Drive Profile)
 
+> **Quick start:** Connect → open the **CANopen** tab → click **Enable Decoder**.
+
+![CANviz CANopen Decoder demo](canopendemo.gif)
+
 ---
 
 ## Overview

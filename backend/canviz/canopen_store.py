@@ -1058,9 +1058,8 @@ class CANopenStore:
             result["cia402_statusword"] = f"0x{sw:04X}"
             with self._lock:
                 rec = self._nodes.get(cob.node_id)
-                if rec and rec.cia402_state is None:
-                    # Store state string with annotation; statusword as int (matches NodeRecord type)
-                    rec.cia402_state      = f"{state} (default)"
+                if rec:
+                    rec.cia402_state      = f"{state}"
                     rec.cia402_statusword = sw
 
         return result
