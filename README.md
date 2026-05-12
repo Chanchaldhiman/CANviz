@@ -8,7 +8,7 @@
 [![Monthly Downloads](https://static.pepy.tech/badge/canviz/month)](https://pepy.tech/project/canviz)
 [![Python](https://img.shields.io/pypi/pyversions/canviz.svg)](https://pypi.org/project/canviz/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz?style=social)](https://github.com/Chanchaldhiman/CANviz)
+![GitHub Repo stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz)
 
 ```bash
 pip install canviz
