@@ -283,10 +283,10 @@ Full interactive docs at `http://localhost:8080/docs` while running.
   3.10+. Ubuntu 20.04 ships Python 3.8 -- upgrade to 22.04+ or install Python 3.10
   separately.
 - If still doesn't work then try installing with pipx,
-- `sudo apt install pipx`
-- `pipx ensurepath`,
+`sudo apt install pipx`
+`pipx ensurepath`,
 then try
-- 'pipx install canviz'
+`pipx install canviz`
 
 **Device shows a COM port on Windows**
 Your adapter is running slcan firmware, not Candlelight.
