@@ -8,7 +8,8 @@
 [![Monthly Downloads](https://static.pepy.tech/badge/canviz/month)](https://pepy.tech/project/canviz)
 [![Python](https://img.shields.io/pypi/pyversions/canviz.svg)](https://pypi.org/project/canviz/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz?style=social)](https://github.com/Chanchaldhiman/CANviz)
+![GitHub Repo stars](https://img.shields.io/github/stars/Chanchaldhiman/CANviz)
+
 
 ```bash
 pip install canviz
@@ -281,6 +282,11 @@ Full interactive docs at `http://localhost:8080/docs` while running.
 Use `pip3 install canviz` or `python3 -m pip install canviz`. CANviz requires Python
 3.10+. Ubuntu 20.04 ships Python 3.8 -- upgrade to 22.04+ or install Python 3.10
 separately.
+If still doesn't work then try installing with pipx,
+'sudo apt install pipx'
+'pipx ensurepath'
+then try
+'pipx install canviz'
 
 **Device shows a COM port on Windows**
 Your adapter is running slcan firmware, not Candlelight.
