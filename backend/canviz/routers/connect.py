@@ -38,6 +38,7 @@ async def connect(req: ConnectRequest):
         # Both are COM port devices — channel is the port string, no index needed
         index   = req.index
         channel = str(req.channel)
+        baudrate = req.baudrate
     else:
         index   = req.index
         channel = str(req.channel)
@@ -48,6 +49,7 @@ async def connect(req: ConnectRequest):
             channel=channel,
             bitrate=req.bitrate,
             index=index,
+            baudrate=baudrate
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

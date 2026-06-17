@@ -18,13 +18,16 @@ InterfaceType = Literal["gs_usb", "slcan", "virtual", "socketcan", "pcan", "kvas
 @dataclass
 class CANConfig:
     # Which python-can interface to use
-    interface: InterfaceType = "gs_usb"
+    interface: InterfaceType|str = "gs_usb"
 
     # gs_usb: device index (0 for first/only device)
     index: int = 0
 
     # slcan / socketcan: channel string e.g. "COM3" or "can0"
     channel: str = ""
+
+    # Baudrate in bps — must match the channel being used
+    baudrate: int = 115_200
 
     # Bitrate in bps — must match the bus being sniffed
     bitrate: int = 500_000
@@ -39,6 +42,7 @@ class CANConfig:
             "index": self.index,
             "channel": self.channel,
             "bitrate": self.bitrate,
+            "baudrate": self.baudrate
         }
 
 

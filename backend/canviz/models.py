@@ -38,6 +38,7 @@ class ConnectRequest(BaseModel):
     # Accept both; bus.py passes it as `index` for gs_usb.
     channel: Union[str, int] = ""
     bitrate: int = 500_000
+    baudrate: int = 115_200
     index: int = 0
 
 

@@ -74,6 +74,10 @@ ChannelOpt = Annotated[
     str,
     typer.Option("--channel", "-c", help="Channel for slcan (e.g. COM3) or socketcan (e.g. can0)"),
 ]
+BaudrateOpt = Annotated[
+    int,
+    typer.Option("--baudrate", "-s", help="tty or COM bus baudrate in bps"),
+]
 BitrateOpt = Annotated[
     int,
     typer.Option("--bitrate", "-b", help="CAN bus bitrate in bps"),
@@ -98,6 +102,7 @@ def root(
     channel: ChannelOpt = "",
     index: IndexOpt = 0,
     bitrate: BitrateOpt = 500_000,
+    baudrate: BaudrateOpt = 115_200,
     host: Annotated[str, typer.Option("--host", help="Host to bind")] = "127.0.0.1",
     port: Annotated[int, typer.Option("--port", help="Port to listen on")] = 8080,
     no_browser: Annotated[bool, typer.Option("--no-browser", help="Do not auto-open the browser")] = False,
@@ -116,6 +121,7 @@ def root(
         channel=channel,
         index=index,
         bitrate=bitrate,
+        baudrate=baudrate,
         host=host,
         port=port,
         headless=no_browser,
@@ -132,6 +138,7 @@ def serve(
     channel: ChannelOpt = "",
     index: IndexOpt = 0,
     bitrate: BitrateOpt = 500_000,
+    baudrate: BaudrateOpt = 115_200,
     host: Annotated[str, typer.Option("--host", help="Host to bind")] = "127.0.0.1",
     port: Annotated[int, typer.Option("--port", help="Port to listen on")] = 8080,
     headless: Annotated[bool, typer.Option("--headless", help="Start API only - do not open a browser")] = False,
@@ -145,6 +152,7 @@ def serve(
         channel=channel,
         index=index,
         bitrate=bitrate,
+        baudrate=baudrate,
         host=host,
         port=port,
         headless=headless or no_browser,
@@ -158,6 +166,7 @@ def _run_serve(
     channel: str,
     index: int,
     bitrate: int,
+    baudrate: int,
     host: str,
     port: int,
     headless: bool,
@@ -171,6 +180,7 @@ def _run_serve(
     settings.bitrate   = bitrate
     settings.host      = host
     settings.port      = port
+    settings.baudrate  = baudrate
 
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
@@ -212,6 +222,7 @@ def _run_serve(
             "channel":   channel,
             "bitrate":   bitrate,
             "index":     index,
+            "baudrate":  baudrate
         }).encode()
         req = urllib.request.Request(
             f"{base}/connect",

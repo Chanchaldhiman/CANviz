@@ -132,6 +132,7 @@ export interface ConnectionConfig {
   channel?: string;         // slcan: COM port e.g. "COM3" | socketcan: e.g. "can0"
   index?: number;           // gs_usb / kvaser: device index (default 0)
   bitrate: number;          // bps: 125000 | 250000 | 500000 | 1000000
+  baudrate : number;        // baudrate for slcan port com
 }
 
 export interface ConnectionState {
