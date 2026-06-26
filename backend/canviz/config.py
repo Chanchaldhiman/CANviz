@@ -18,7 +18,7 @@ InterfaceType = Literal["gs_usb", "slcan", "virtual", "socketcan", "pcan", "kvas
 @dataclass
 class CANConfig:
     # Which python-can interface to use
-    interface: InterfaceType|str = "gs_usb"
+    interface: InterfaceType = "gs_usb"
 
     # gs_usb: device index (0 for first/only device)
     index: int = 0

@@ -23,6 +23,7 @@ router = APIRouter(tags=["connection"])
 async def connect(req: ConnectRequest):
     # For gs_usb: channel field holds the device index (int, default 0)
     # For slcan/socketcan: channel field holds the port string (e.g. "COM3")
+    baudrate = req.baudrate
     if req.interface == "gs_usb":
         index   = int(req.channel) if req.channel != "" else req.index
         channel = ""
@@ -38,7 +39,6 @@ async def connect(req: ConnectRequest):
         # Both are COM port devices — channel is the port string, no index needed
         index   = req.index
         channel = str(req.channel)
-        baudrate = req.baudrate
     else:
         index   = req.index
         channel = str(req.channel)

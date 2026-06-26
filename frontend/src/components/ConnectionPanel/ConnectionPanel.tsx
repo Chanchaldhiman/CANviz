@@ -10,16 +10,17 @@ const BITRATES = [
 ];
 
 const BAUDRATES = [
-  { label: '9.6 kbps', value: 9600 },
-  { label: '19.2 kbps', value: 19200 },
-  { label: '38.4 kbps', value: 38400 },
-  { label: '57.6 kbps', value: 57600 },
-  { label: '115.2 kbps', value: 115200 },
-  { label: '230.4 kbps', value: 230400 },
-  { label: '460.8 kbps', value: 460800 },
-  { label: '500 kbps', value: 500000 },
-  { label: '921.6 kbps',   value: 921600 },
-  { label: '1 Mbps',   value: 1000000 },
+  { label: '9.6 kBd',   value: 9600 },
+  { label: '19.2 kBd',  value: 19200 },
+  { label: '38.4 kBd',  value: 38400 },
+  { label: '57.6 kBd',  value: 57600 },
+  { label: '115.2 kBd', value: 115200 },
+  { label: '230.4 kBd', value: 230400 },
+  { label: '460.8 kBd', value: 460800 },
+  { label: '500 kBd',   value: 500000 },
+  { label: '921.6 kBd', value: 921600 },
+  { label: '1 MBd',     value: 1000000 },
+  { label: '2 MBd',     value: 2000000 },
 ];
 
 const INTERFACES: { label: string; value: InterfaceType; hint: string }[] = [
