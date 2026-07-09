@@ -80,6 +80,7 @@ class BusManager:
         channel: str = "",
         bitrate: int = 500_000,
         index: int = 0,
+        baudrate: int = 115_200
     ) -> None:
         if self._connected:
             await self.disconnect()
@@ -94,6 +95,7 @@ class BusManager:
             and self._open_channel == channel
             and self._open_bitrate == bitrate
             and self._open_index == index
+            and self._open_serial_baudrate == baudrate
         )
 
         if settings_match:
@@ -108,7 +110,7 @@ class BusManager:
 
             try:
                
-                self._bus = _open_bus(interface, channel, bitrate, index,)
+                self._bus = _open_bus(interface, channel, bitrate, index, baudrate)
             except Exception as exc:
                 self._error = str(exc)
                 log.error("Bus open failed: %s", exc)
@@ -117,6 +119,7 @@ class BusManager:
             self._open_interface = interface
             self._open_channel   = channel
             self._open_bitrate   = bitrate
+            self._open_serial_baudrate = baudrate
             self._open_index     = index
 
         # gs_usb (Candlelight) and virtual echo sent frames back through recv()

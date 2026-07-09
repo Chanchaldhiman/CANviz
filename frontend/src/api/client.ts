@@ -33,6 +33,7 @@ export function apiConnect(config: ConnectionConfig) {
     interface:        config.interface,
     channel:          config.channel ?? '',
     bitrate:          config.bitrate,
+    baudrate:         config.baudrate,
     index:            config.index ?? 0,
   };
 

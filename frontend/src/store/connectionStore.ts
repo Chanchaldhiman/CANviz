@@ -22,6 +22,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     interface: 'gs_usb',
     index: 0,
     bitrate: 500000,
+    baudrate : 115200
   },
   error: null,
 

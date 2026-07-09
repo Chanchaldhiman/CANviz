@@ -9,6 +9,20 @@ const BITRATES = [
   { label: '1 Mbps',   value: 1000000 },
 ];
 
+const BAUDRATES = [
+  { label: '9.6 kBd',   value: 9600 },
+  { label: '19.2 kBd',  value: 19200 },
+  { label: '38.4 kBd',  value: 38400 },
+  { label: '57.6 kBd',  value: 57600 },
+  { label: '115.2 kBd', value: 115200 },
+  { label: '230.4 kBd', value: 230400 },
+  { label: '460.8 kBd', value: 460800 },
+  { label: '500 kBd',   value: 500000 },
+  { label: '921.6 kBd', value: 921600 },
+  { label: '1 MBd',     value: 1000000 },
+  { label: '2 MBd',     value: 2000000 },
+];
+
 const INTERFACES: { label: string; value: InterfaceType; hint: string }[] = [
   { value: 'gs_usb',      label: 'gs_usb (Candlelight)',        hint: 'FYSETC UCAN, CANable 2.0 Pro - no COM port' },
   { value: 'slcan',       label: 'slcan (COM port)',             hint: 'CANable slcan firmware - appears as COM3 etc.' },
@@ -87,6 +101,18 @@ export function ConnectionPanel() {
               disabled={isConnected || isBusy}
               onChange={(e) => setConfig({ channel: e.target.value })}
             />
+            <label className="field-label">Baudrate</label>
+            <select
+              className="field-select"
+              value={config.baudrate}
+              disabled={isConnected || isBusy}
+              onChange={(e) => setConfig({ baudrate: parseInt(e.target.value) })}
+            >
+              {BAUDRATES.map((b) => (
+                <option key={b.value} value={b.value}>{b.label}</option>
+              ))}
+            </select>
+
           </div>
         </>
       )}

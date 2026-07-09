@@ -23,6 +23,7 @@ router = APIRouter(tags=["connection"])
 async def connect(req: ConnectRequest):
     # For gs_usb: channel field holds the device index (int, default 0)
     # For slcan/socketcan: channel field holds the port string (e.g. "COM3")
+    baudrate = req.baudrate
     if req.interface == "gs_usb":
         index   = int(req.channel) if req.channel != "" else req.index
         channel = ""
@@ -48,6 +49,7 @@ async def connect(req: ConnectRequest):
             channel=channel,
             bitrate=req.bitrate,
             index=index,
+            baudrate=baudrate
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

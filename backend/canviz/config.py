@@ -26,6 +26,9 @@ class CANConfig:
     # slcan / socketcan: channel string e.g. "COM3" or "can0"
     channel: str = ""
 
+    # Baudrate in bps — must match the channel being used
+    baudrate: int = 115_200
+
     # Bitrate in bps — must match the bus being sniffed
     bitrate: int = 500_000
 
@@ -39,6 +42,7 @@ class CANConfig:
             "index": self.index,
             "channel": self.channel,
             "bitrate": self.bitrate,
+            "baudrate": self.baudrate
         }
 
 
