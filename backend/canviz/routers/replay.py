@@ -1,7 +1,7 @@
 """
 backend/canviz/routers/replay.py
 
-Replay router — Phase 2 addition.
+Replay router - Phase 2 addition.
 Accepts an uploaded .asc or .csv log file and replays it through
 the virtual bus at a configurable speed multiplier, emitting frames
 over the existing WebSocket just like live hardware would.
@@ -10,10 +10,10 @@ Assumptions & limitations:
 - Only one replay session at a time (single-channel, v1 scope).
 - .asc timing is read from the timestamp column; .csv must have a
   'timestamp' column in seconds (float).
-- Speed multiplier is applied globally — no per-frame jitter removal.
+- Speed multiplier is applied globally - no per-frame jitter removal.
 - Progress is estimated from file position, not frame count, for simplicity.
 - Replay uses the virtual bus internally regardless of the configured
-  hardware interface — it does NOT transmit onto a real CAN bus.
+  hardware interface - it does NOT transmit onto a real CAN bus.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/replay", tags=["replay"])
 
-# Temporary upload directory — created at startup if missing
+# Temporary upload directory - created at startup if missing
 UPLOAD_DIR = Path(os.getenv("canviz_UPLOAD_DIR", "/tmp/canviz_replay"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -73,7 +73,7 @@ class _ReplaySession:
         self._pause_event = asyncio.Event()
         self._pause_event.set()   # not paused initially
         self._stop_flag = False
-        # Injected at startup via set_broadcast_fn() — no hardcoded import
+        # Injected at startup via set_broadcast_fn() - no hardcoded import
         self._broadcast_fn = None
 
     def reset(self) -> None:
@@ -141,10 +141,10 @@ def _parse_csv(content: str):
     for row in reader:
         try:
             ts  = float(row["timestamp"])
-            # ID is always written as hex by the backend — never decimal
+            # ID is always written as hex by the backend - never decimal
             fid = int(row["id"], 16)
             dlc = int(row["dlc"])
-            # Data is concatenated hex pairs — split every 2 chars
+            # Data is concatenated hex pairs - split every 2 chars
             raw  = row.get("data", "").strip()
             data = [int(raw[i:i+2], 16) for i in range(0, len(raw), 2) if raw[i:i+2]]
             yield ts, fid, dlc, data[:dlc]
@@ -160,7 +160,7 @@ async def _replay_worker(filepath: Path, speed: float, broadcast_fn) -> None:
     """
     Read log file, replay frames at scaled timing into the WebSocket broadcast.
 
-    broadcast_fn should be the same callable used by the frame reader loop —
+    broadcast_fn should be the same callable used by the frame reader loop -
     imported from the connection manager at call time to avoid circular imports.
     """
     content = filepath.read_text(errors="replace")
@@ -213,7 +213,7 @@ async def _replay_worker(filepath: Path, speed: float, broadcast_fn) -> None:
         if _session._stop_flag:
             break
 
-        # Emit frame as JSON dict — broadcast_fn handles serialisation
+        # Emit frame as JSON dict - broadcast_fn handles serialisation
         frame_dict = {
             "id":             fid,
             "dlc":            dlc,
@@ -277,7 +277,7 @@ async def replay_start(req: ReplayStartRequest):
     # Use the injected broadcast function (set via set_broadcast_fn() at startup)
     broadcast_fn = _session._broadcast_fn
     if broadcast_fn is None:
-        # Fallback no-op — works in dev/testing without full backend wired up
+        # Fallback no-op - works in dev/testing without full backend wired up
         async def broadcast_fn(_frame):  # type: ignore
             pass
 

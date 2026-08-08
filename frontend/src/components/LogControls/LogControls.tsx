@@ -71,11 +71,11 @@ export function LogControls() {
 
       {logError && <div className="error-banner">{logError}</div>}
 
-      {/* Download links — shown after stop */}
+      {/* Download links - shown after stop */}
       {(ascUrl || csvUrl) && !recording && (
         <div style={styles.downloads}>
           <span style={styles.downloadsLabel} className="text-xs text-muted">
-            Session saved — download:
+            Session saved - download:
           </span>
           <div className="btn-row">
             {ascUrl && (

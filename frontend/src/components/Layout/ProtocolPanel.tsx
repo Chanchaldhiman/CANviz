@@ -11,10 +11,12 @@
 import { useState } from 'react';
 import { J1939Panel } from '../J1939Panel/J1939Panel';
 import { CANopenPanel } from '../CANopenPanel/CANopenPanel';
+import { OBDPanel } from '../OBDPanel/OBDPanel';
 import { useJ1939Store } from '../../store/j1939Store';
 import { useCANopenStore } from '../../store/canopenStore';
+import { useOBDStore } from '../../store/obdStore';
 
-type ProtocolTab = 'canopen' | 'j1939';
+type ProtocolTab = 'canopen' | 'j1939' | 'obd';
 
 interface Props {
   onResizeMouseDown: (e: React.MouseEvent) => void;
@@ -42,6 +44,10 @@ export function ProtocolPanel({ onResizeMouseDown, dragging }: Props) {
   const canopenDetected = useCANopenStore((s) => s.autoDetected);
   const canopenMode     = useCANopenStore((s) => s.mode);
   const showCanopenDot  = canopenDetected && canopenMode === 'off';
+
+  const obdMode = useOBDStore((s) => s.mode);
+  const obdStalled = useOBDStore((s) => s.dataStalled);
+  const obdWatchedCount = useOBDStore((s) => s.watchedPids.length);
 
   return (
     <div
@@ -105,12 +111,29 @@ export function ProtocolPanel({ onResizeMouseDown, dragging }: Props) {
             <span style={tabDot} title="J1939 traffic detected -- enable decoder" />
           )}
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'obd' ? 'active' : ''}`}
+          onClick={() => setActiveTab('obd')}
+          style={{ position: 'relative' }}
+        >
+          OBD-II
+          {obdMode === 'on' && obdWatchedCount > 0 && !obdStalled && (
+            <span style={{ ...tabDot, background: 'var(--accent-green)', boxShadow: '0 0 4px var(--accent-green)' }} title="Receiving live OBD-II data" />
+          )}
+          {obdMode === 'on' && obdWatchedCount > 0 && obdStalled && (
+            <span style={{ ...tabDot, background: 'var(--accent-amber)', boxShadow: '0 0 4px var(--accent-amber)' }} title="Enabled, but not receiving responses" />
+          )}
+          {obdMode === 'on' && obdWatchedCount === 0 && (
+            <span style={{ ...tabDot, background: 'var(--text-muted)' }} title="Enabled -- select a PID to see live data" />
+          )}
+        </button>
       </div>
 
       {/* Panel content -- full height, scrollable */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '10px 14px' }}>
         {activeTab === 'canopen' && <CANopenPanel />}
         {activeTab === 'j1939'   && <J1939Panel />}
+        {activeTab === 'obd'     && <OBDPanel />}
       </div>
     </div>
   );

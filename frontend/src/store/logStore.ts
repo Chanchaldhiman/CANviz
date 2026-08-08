@@ -28,11 +28,11 @@ interface LogStore {
   replayDone: boolean;
   replayError: string | null;
 
-  // Actions — recording
+  // Actions - recording
   startRecording: () => Promise<void>;
   stopRecording: () => Promise<void>;
 
-  // Actions — replay
+  // Actions - replay
   uploadAndStartReplay: (file: File, speed: number) => Promise<void>;
   pauseReplay: () => Promise<void>;
   resumeReplay: () => Promise<void>;

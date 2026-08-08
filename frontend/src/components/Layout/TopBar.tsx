@@ -93,10 +93,10 @@ export function TopBar() {
             />
             <Divider />
 
-            {/* Error frames — with slcan caveat tooltip */}
+            {/* Error frames - with slcan caveat tooltip */}
             <div style={styles.stat} title={
               isSlcan
-                ? 'slcan firmware typically does not forward error frames to the host — this count will read 0% even on a degraded bus. Use gs_usb (Candlelight) for accurate error frame visibility.'
+                ? 'slcan firmware typically does not forward error frames to the host - this count will read 0% even on a degraded bus. Use gs_usb (Candlelight) for accurate error frame visibility.'
                 : `${stats.error_pct.toFixed(2)}% of received frames`
             }>
               <span

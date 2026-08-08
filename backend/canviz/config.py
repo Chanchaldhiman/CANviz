@@ -26,10 +26,10 @@ class CANConfig:
     # slcan / socketcan: channel string e.g. "COM3" or "can0"
     channel: str = ""
 
-    # Baudrate in bps — must match the channel being used
+    # Baudrate in bps - must match the channel being used
     baudrate: int = 115_200
 
-    # Bitrate in bps — must match the bus being sniffed
+    # Bitrate in bps - must match the bus being sniffed
     bitrate: int = 500_000
 
     # Host / port the HTTP + WS server listens on
@@ -46,5 +46,5 @@ class CANConfig:
         }
 
 
-# Singleton — import this everywhere
+# Singleton - import this everywhere
 settings = CANConfig()

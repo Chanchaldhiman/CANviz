@@ -41,7 +41,7 @@ export function SettingsPanel() {
         </select>
       </div>
 
-      {/* COM port — slcan only */}
+      {/* COM port - slcan only */}
       {config.interface === 'slcan' && (
         <div className="field-group">
           <label className="field-label">COM Port</label>
@@ -56,7 +56,7 @@ export function SettingsPanel() {
         </div>
       )}
 
-      {/* Device index — gs_usb only */}
+      {/* Device index - gs_usb only */}
       {config.interface === 'gs_usb' && (
         <div className="field-group">
           <label className="field-label">Device Index</label>

@@ -25,6 +25,7 @@ from starlette.websockets import WebSocketState
 from canviz.dbc_store import dbc_store
 from canviz.j1939_store import j1939_store
 from canviz.canopen_store import canopen_store
+from canviz.obd_store import obd_store
 from canviz.stats_store import stats
 
 log = logging.getLogger("canviz.ws")
@@ -182,6 +183,7 @@ class WSBroadcaster:
                 **stats.snapshot(),
                 **j1939_store.status_dict(),
                 **canopen_store.status_dict(),
+                **obd_store.status_dict(),
             })
 
             dead: list[WebSocket] = []

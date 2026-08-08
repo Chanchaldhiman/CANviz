@@ -10,7 +10,7 @@ Shows how to:
 Assumptions:
 - Your FastAPI app object is called `app`.
 - The built frontend lives at `canviz/static/` (Vite output → this dir).
-- This module is imported once at startup — add the import to your main.py.
+- This module is imported once at startup - add the import to your main.py.
 """
 
 from pathlib import Path
@@ -54,7 +54,7 @@ def mount_frontend(app: FastAPI) -> None:
         name="assets",
     )
 
-    # SPA fallback — all unknown GET paths return index.html
+    # SPA fallback - all unknown GET paths return index.html
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(full_path: str):  # noqa: ARG001
         index = STATIC_DIR / "index.html"

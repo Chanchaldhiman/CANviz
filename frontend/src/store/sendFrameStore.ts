@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { apiSendFrame } from '../api/client';
 
-// Module-scope timer registry — never put intervals in Zustand state
+// Module-scope timer registry - never put intervals in Zustand state
 const timers = new Map<string, ReturnType<typeof setInterval>>();
 
 let counter = 0;

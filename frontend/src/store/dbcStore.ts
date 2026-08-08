@@ -43,7 +43,7 @@ export const useDbcStore = create<DbcStore>((set) => ({
       const data = await apiGetDbcMessages();
       set({ messages: (data.messages as DbcMessage[]) ?? [] });
     } catch {
-      // Silent — not critical
+      // Silent - not critical
     }
   },
 

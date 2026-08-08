@@ -15,6 +15,7 @@ from canviz.config import settings
 from canviz.models import ConnectRequest, ConnectionStatus
 from canviz.ws_broadcaster import broadcaster
 from canviz.stats_store import stats
+from canviz.obd_store import obd_store
 
 router = APIRouter(tags=["connection"])
 
@@ -36,7 +37,7 @@ async def connect(req: ConnectRequest):
         index   = req.index
         channel = str(req.channel) if req.channel else "PCAN_USBBUS1"
     elif req.interface in ("slcan", "seeedstudio"):
-        # Both are COM port devices — channel is the port string, no index needed
+        # Both are COM port devices - channel is the port string, no index needed
         index   = req.index
         channel = str(req.channel)
     else:
@@ -55,6 +56,7 @@ async def connect(req: ConnectRequest):
         raise HTTPException(status_code=500, detail=str(exc))
 
     bus_manager.add_frame_callback(broadcaster.on_frame)
+    bus_manager.add_frame_callback(obd_store.on_frame)
     stats.on_connect(bitrate=req.bitrate)
     broadcaster.start()
 
@@ -64,6 +66,8 @@ async def connect(req: ConnectRequest):
 @router.post("/disconnect", response_model=ConnectionStatus)
 async def disconnect():
     bus_manager.remove_frame_callback(broadcaster.on_frame)
+    bus_manager.remove_frame_callback(obd_store.on_frame)
+    obd_store.set_mode("off")  # polling against a dead bus would just time out forever
     stats.on_disconnect()
     broadcaster.clear_queue()
     await bus_manager.disconnect()

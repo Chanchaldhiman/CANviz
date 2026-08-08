@@ -1,7 +1,7 @@
 """
 tests/test_virtual_bus.py
 -------------------------
-Phase 1 unit tests — all run on the virtual bus (no hardware required).
+Phase 1 unit tests - all run on the virtual bus (no hardware required).
 Uses pytest-asyncio (auto mode) + httpx AsyncClient.
 
 Run: pytest tests/ -v
@@ -31,7 +31,7 @@ async def clean_state():
       4. Unload DBC (clears in-memory DB).
 
     broadcaster.stop() is safe to call even when the broadcaster was never
-    started — it checks for None before cancelling.
+    started - it checks for None before cancelling.
     """
     yield
     bus_manager.remove_frame_callback(broadcaster.on_frame)

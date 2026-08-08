@@ -1,7 +1,7 @@
 import type { ConnectionConfig, ApiStatus } from '../types/can';
 
 // In dev: Vite proxies /api/* → localhost:8080/* (stripping /api prefix)
-// In prod: FastAPI serves at same origin with no prefix — use empty base
+// In prod: FastAPI serves at same origin with no prefix - use empty base
 const BASE = import.meta.env.DEV ? '/api' : '';
 
 async function request<T>(
@@ -112,7 +112,7 @@ export function apiLogStart() {
 }
 
 export function apiLogStop() {
-  // Backend uses a global session — no body needed
+  // Backend uses a global session - no body needed
   return request<LogStopResponse>('/log/stop', { method: 'POST' });
 }
 

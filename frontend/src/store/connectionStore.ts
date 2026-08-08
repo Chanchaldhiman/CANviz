@@ -62,9 +62,9 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     try {
       await apiDisconnect();
     } catch {
-      // Ignore — always transition to idle
+      // Ignore - always transition to idle
     }
-    // Do NOT clear frames here — the table should freeze at last state
+    // Do NOT clear frames here - the table should freeze at last state
     // so the user can inspect counts, fps, and last values after stopping.
     set({ status: 'idle' });
   },

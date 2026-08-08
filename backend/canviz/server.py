@@ -18,6 +18,7 @@ from canviz.static_serving import mount_frontend
 from canviz.routers import stats as stats_router
 from canviz.routers.j1939 import router as j1939_router
 from canviz.routers.canopen import router as canopen_router
+from canviz.routers.obd import router as obd_router
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -50,7 +51,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="CANviz",
     description="Open-source browser-based CAN bus analyzer",
-    version="0.2.4",
+    version="0.3.1",
     lifespan=lifespan,
 )
 
@@ -83,6 +84,7 @@ app.include_router(log.router)
 app.include_router(stats_router.router)
 app.include_router(j1939_router)
 app.include_router(canopen_router)
+app.include_router(obd_router)
 app.include_router(replay_router)
 
 
@@ -102,4 +104,4 @@ mount_frontend(app)
 
 @app.get("/")
 async def root():
-    return {"name": "CANviz", "version": "0.2.4", "docs": "/docs"}
+    return {"name": "CANviz", "version": "0.3.1", "docs": "/docs"}

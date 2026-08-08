@@ -3,9 +3,9 @@ canviz/routers/log.py
 ---------------------
 Session logging endpoints.
 
-POST /log/start  — begin recording frames to .asc and .csv
-POST /log/stop   — stop recording; returns download paths
-GET  /log/download/{filename} — serve the recorded file
+POST /log/start  - begin recording frames to .asc and .csv
+POST /log/stop   - stop recording; returns download paths
+GET  /log/download/{filename} - serve the recorded file
 
 Frames are written asynchronously via aiofiles so the event loop
 is never blocked by disk I/O.
@@ -28,7 +28,7 @@ from canviz.bus import bus_manager
 log = logging.getLogger("canviz.log")
 router = APIRouter(prefix="/log", tags=["logging"])
 
-# Where logs are written — will be created if it doesn't exist
+# Where logs are written - will be created if it doesn't exist
 LOG_DIR = Path("logs")
 
 _session: Optional["LogSession"] = None
@@ -131,7 +131,7 @@ async def log_stop():
 
 @router.get("/download/{filename}")
 async def log_download(filename: str):
-    # Sanitise — only allow files inside LOG_DIR
+    # Sanitise - only allow files inside LOG_DIR
     target = (LOG_DIR / filename).resolve()
     if not str(target).startswith(str(LOG_DIR.resolve())):
         raise HTTPException(status_code=400, detail="Invalid filename.")

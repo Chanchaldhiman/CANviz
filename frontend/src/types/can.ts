@@ -75,7 +75,7 @@ export interface CANopenInfo {
 }
 
 export interface CanFrame {
-  // Backend sends id as hex string e.g. "0x1a2" — normalised to number in frameStore
+  // Backend sends id as hex string e.g. "0x1a2" - normalised to number in frameStore
   id: string | number;
   dlc: number;
   data: number[];
@@ -96,7 +96,7 @@ export interface DecodedSignal {
   message_name: string;
 }
 
-// A row in the live message table — deduped by ID, with stats
+// A row in the live message table - deduped by ID, with stats
 export interface FrameRow {
   id: number;
   idHex: string;            // e.g. "0x1A2"

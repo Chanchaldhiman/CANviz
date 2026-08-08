@@ -4,10 +4,10 @@ canviz/bus.py
 Manages the python-can Bus lifecycle.
 
 Priority order (matches the design decision log):
-  1. gs_usb  — Candlelight firmware, no COM port, plug-and-play on Windows
-  2. slcan   — COM port devices (secondary path)
-  3. virtual — software bus, used for dev and CI (no hardware needed)
-  4. socketcan — Linux SocketCAN (Raspberry Pi, WSL2)
+  1. gs_usb  - Candlelight firmware, no COM port, plug-and-play on Windows
+  2. slcan   - COM port devices (secondary path)
+  3. virtual - software bus, used for dev and CI (no hardware needed)
+  4. socketcan - Linux SocketCAN (Raspberry Pi, WSL2)
 
 Disconnect/reconnect design
 ---------------------------
@@ -15,13 +15,23 @@ On Windows, gs_usb (libusb/WinUSB) does not reliably release the USB device
 handle within a short time after shutdown(). Attempting to reopen within ~5s
 consistently raises [Errno 13] Access denied.
 
-Solution: "disconnect" is a SOFT operation — it stops the frame reader loop
+Solution: "disconnect" is a SOFT operation - it stops the frame reader loop
 but keeps the USB bus object alive. On reconnect with the same settings, the
 existing handle is reused immediately (no USB re-enumeration needed).
 
 A full hardware teardown (_hard_shutdown) is only done:
   - When the server process exits (lifespan shutdown)
   - When the user explicitly changes interface/bitrate/channel (settings change)
+
+Observed quirk (unconfirmed against firmware source, but reproduced by a user
+report): if the adapter's onboard CAN controller ends up latched in a bad
+state -- e.g. after a burst of ACK/bus errors with no other node on the bus
+-- closing and restarting the CANviz *process* does not clear it, since the
+adapter stays powered over USB the whole time and only the host-side handle
+is closed and reopened. A physical unplug/replug (actual power cycle of the
+board) did clear it in that report. If reconnects succeed but the bus stays
+silent/error-heavy right after a CANviz restart, that is the first thing to
+try before assuming a code or wiring problem.
 """
 
 from __future__ import annotations
@@ -103,7 +113,7 @@ class BusManager:
                 "Reconnecting: reusing existing %s bus handle (no USB re-open).", interface
             )
         else:
-            # Settings changed — need a new hardware connection.
+            # Settings changed - need a new hardware connection.
             # Full teardown of the old bus first.
             if self._bus is not None:
                 await self._hard_shutdown()
@@ -124,7 +134,7 @@ class BusManager:
 
         # gs_usb (Candlelight) and virtual echo sent frames back through recv()
         # automatically so they appear in the UI via the reader loop.
-        # slcan and seeedstudio do not — send() will echo them manually.
+        # slcan and seeedstudio do not - send() will echo them manually.
         self._echoes_sent_frames = interface in ("gs_usb", "virtual")
 
         settings.interface = interface
@@ -144,7 +154,7 @@ class BusManager:
 
     async def disconnect(self) -> None:
         """
-        Soft disconnect — stops the reader loop, keeps the USB handle open.
+        Soft disconnect - stops the reader loop, keeps the USB handle open.
         Safe to call multiple times. Fast (no USB teardown).
         """
         self._connected = False
@@ -164,7 +174,7 @@ class BusManager:
 
     async def _hard_shutdown(self) -> None:
         """
-        Full hardware teardown — closes the USB handle.
+        Full hardware teardown - closes the USB handle.
         Called on server shutdown or when interface settings change.
         Not called on normal UI disconnect/reconnect cycles.
         """
@@ -186,7 +196,7 @@ class BusManager:
 
     async def send(self, arbitration_id: int, data: list[int], is_extended_id: bool = False) -> None:
         if not self._connected or self._bus is None:
-            raise RuntimeError("Not connected — call /connect first")
+            raise RuntimeError("Not connected - call /connect first")
         msg = can.Message(
             arbitration_id=arbitration_id,
             data=bytes(data),
@@ -282,7 +292,7 @@ def _ensure_libusb() -> None:
     """
     Verify pyusb can reach a libusb backend.
     On Windows the 'libusb' pip package bundles the DLL but pyusb won't
-    find it automatically — we patch usb.core to use it explicitly.
+    find it automatically - we patch usb.core to use it explicitly.
     Raises ImportError with a clear action if nothing works.
     """
     global _libusb_patched
@@ -318,6 +328,43 @@ def _ensure_libusb() -> None:
         ) from exc
 
 
+def _open_gs_usb_with_retry(index: int, bitrate: int, attempts: int = 4) -> can.BusABC:
+    """
+    gs_usb (WinUSB) on Windows does not always release the USB handle within
+    the 1.5s grace period _hard_shutdown() already waits (see module
+    docstring). When it doesn't, opening raises an access-denied error even
+    though nothing is actually wrong with the device or the settings.
+
+    This retries with increasing backoff before giving up, rather than
+    surfacing a transient timing race as a hard failure. Matched on message
+    text rather than exception type: pyusb's USBError does not reliably
+    subclass PermissionError, so catching by type risks silently never
+    triggering. Any exception whose text doesn't match this specific
+    signature (wrong index, unplugged device, missing driver) still fails
+    immediately on the first attempt, unchanged from before.
+    """
+    delay = 1.0
+    last_exc: Optional[Exception] = None
+    access_denied_markers = ("access denied", "errno 13", "insufficient permissions")
+    for attempt in range(1, attempts + 1):
+        try:
+            return can.Bus(interface="gs_usb", channel=index, bitrate=bitrate)
+        except Exception as exc:
+            is_access_denied = any(m in str(exc).lower() for m in access_denied_markers)
+            if not is_access_denied or attempt == attempts:
+                raise
+            last_exc = exc
+            log.warning(
+                "gs_usb open denied (attempt %d/%d) -- Windows likely hasn't "
+                "released the USB handle yet. Retrying in %.1fs.",
+                attempt, attempts, delay,
+            )
+            time.sleep(delay)
+            delay += 1.0
+    assert last_exc is not None
+    raise last_exc
+
+
 def _open_bus(
     interface: InterfaceType,
     channel: str,
@@ -327,7 +374,7 @@ def _open_bus(
 ) -> can.BusABC:
     if interface == "gs_usb":
         _ensure_libusb()
-        return can.Bus(interface="gs_usb", channel=index, bitrate=bitrate)
+        return _open_gs_usb_with_retry(index, bitrate)
 
     elif interface == "slcan":
         if not channel:
@@ -367,8 +414,8 @@ def _open_bus(
         if not channel:
             raise ValueError("seeedstudio requires a channel (e.g. COM8 or /dev/ttyUSB0)")
         log.info("Opening seeedstudio USB-CAN: channel=%s  CAN bitrate=%d bps", channel, bitrate)
-        # Seeed Studio / GY USB-CAN Analyzer — binary 0xAA/0x55 framing protocol.
-        # No serial baud rate param — the protocol configures the device via an
+        # Seeed Studio / GY USB-CAN Analyzer - binary 0xAA/0x55 framing protocol.
+        # No serial baud rate param - the protocol configures the device via an
         # init frame, not by matching a serial baud rate. python-can handles this
         # internally in the seeedstudio interface.
         return can.Bus(interface="seeedstudio", channel=channel, bitrate=bitrate)

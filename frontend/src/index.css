@@ -69,25 +69,25 @@
    ============================================================ */
 
 [data-theme="light"] {
-  /* Backgrounds — warm white base, clear elevation steps */
+  /* Backgrounds - warm white base, clear elevation steps */
   --bg-base:      #eef2f7;
   --bg-panel:     #ffffff;
   --bg-elevated:  #f4f7fb;
   --bg-hover:     #e8edf5;
   --bg-active:    #dde4ef;
 
-  /* Borders — clearly visible without being harsh */
+  /* Borders - clearly visible without being harsh */
   --border-subtle:  #d4dae6;
   --border-default: #b8c2d4;
   --border-strong:  #8d9bb4;
 
-  /* Text — very high contrast primary, readable secondaries */
+  /* Text - very high contrast primary, readable secondaries */
   --text-primary:   #0f1824;
   --text-secondary: #3a4a62;
   --text-muted:     #7a8fab;
   --text-inverse:   #ffffff;
 
-  /* Accents — slightly deeper green for legibility on white */
+  /* Accents - slightly deeper green for legibility on white */
   --accent-green:       #009e5a;
   --accent-green-dim:   rgba(0, 158, 90, 0.10);
   --accent-green-glow:  rgba(0, 158, 90, 0.22);

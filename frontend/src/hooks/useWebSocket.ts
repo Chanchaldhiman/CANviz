@@ -4,6 +4,7 @@ import { useStatsStore } from '../store/statsStore';
 import { useJ1939Store } from '../store/j1939Store';
 import type { CanFrame } from '../types/can';
 import { useCANopenStore } from '../store/canopenStore';
+import { useOBDStore } from '../store/obdStore';
 
 function getWsUrl(): string {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -24,6 +25,7 @@ export function useWebSocket() {
   const updateStats      = useStatsStore((s) => s.updateStats);
   const updateJ1939Stats = useJ1939Store((s) => s.updateFromStats);
   const updateCanopenStats = useCANopenStore((s) => s.updateFromStats);
+  const updateOBDStats = useOBDStore((s) => s.updateFromStats);
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -49,12 +51,16 @@ export function useWebSocket() {
           if (msg.canopen_mode !== undefined || msg.canopen_detected !== undefined) {
             updateCanopenStats(msg);
           }
+          // OBD-II mode/scanning flags are also piggy-backed on stats
+          if (msg.obd_mode !== undefined || msg.obd_scanning !== undefined || msg.obd_data_stalled !== undefined) {
+            updateOBDStats(msg);
+          }
         } else {
-          // "frame" type — pass to frame store (includes optional j1939 field)
+          // "frame" type - pass to frame store (includes optional j1939 field)
           ingestFrame(msg as CanFrame);
         }
       } catch {
-        // Malformed message — ignore
+        // Malformed message - ignore
       }
     };
 
@@ -73,7 +79,7 @@ export function useWebSocket() {
     ws.onerror = () => {
       // onclose handles reconnect
     };
-  }, [ingestFrame, updateStats, updateJ1939Stats, updateCanopenStats]);
+  }, [ingestFrame, updateStats, updateJ1939Stats, updateCanopenStats, updateOBDStats]);
 
   useEffect(() => {
     mountedRef.current = true;

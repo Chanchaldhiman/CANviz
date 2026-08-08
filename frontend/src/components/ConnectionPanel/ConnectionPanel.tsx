@@ -117,7 +117,7 @@ export function ConnectionPanel() {
         </>
       )}
 
-      {/* seeedstudio: COM port only — no serial baud rate, protocol handles init */}
+      {/* seeedstudio: COM port only - no serial baud rate, protocol handles init */}
       {config.interface === 'seeedstudio' && (
         <div className="field-group">
           <label className="field-label">COM Port</label>

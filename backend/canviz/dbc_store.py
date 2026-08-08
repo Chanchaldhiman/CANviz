@@ -5,7 +5,7 @@ Holds the in-memory DBC database (if loaded) and provides a single
 decode() call that the WebSocket broadcaster uses to enrich frames.
 
 cantools is the decode engine.  Malformed DBC files produce a
-structured error — never a crash.
+structured error - never a crash.
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ class DBCStore:
                 })
             return result
         except KeyError:
-            return []  # ID not in DBC — normal for mixed bus traffic
+            return []  # ID not in DBC - normal for mixed bus traffic
         except Exception as exc:
             log.debug("Decode error id=0x%X: %s", arbitration_id, exc)
             return []

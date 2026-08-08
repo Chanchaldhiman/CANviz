@@ -141,7 +141,7 @@ const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 70,
     cell: ({ row }) => {
       const j = row.original.j1939;
-      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      if (!j) return <span style={styles.j1939Absent}>-</span>;
       return (
         <span className="mono" style={{ color: 'var(--accent-blue)', fontSize: 11 }}>
           {j.pgn_hex}
@@ -155,7 +155,7 @@ const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 180,
     cell: ({ row }) => {
       const j = row.original.j1939;
-      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      if (!j) return <span style={styles.j1939Absent}>-</span>;
       return (
         <span style={styles.pgnName} title={j.pgn_name}>
           {j.pgn_name}
@@ -169,7 +169,7 @@ const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 80,
     cell: ({ row }) => {
       const j = row.original.j1939;
-      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      if (!j) return <span style={styles.j1939Absent}>-</span>;
       return (
         <span title={j.sa_name} style={styles.saCell}>
           <span className="mono" style={{ color: 'var(--accent-amber)', fontSize: 11 }}>
@@ -186,7 +186,7 @@ const J1939_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 60,
     cell: ({ row }) => {
       const j = row.original.j1939;
-      if (!j) return <span style={styles.j1939Absent}>—</span>;
+      if (!j) return <span style={styles.j1939Absent}>-</span>;
       return (
         <span className="mono" style={{
           color: j.is_broadcast ? 'var(--text-muted)' : 'var(--text-secondary)',
@@ -259,7 +259,7 @@ const CANOPEN_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 80,
     cell: ({ row }) => {
       const co = row.original.canopen;
-      if (!co) return <span style={styles.coAbsent}>—</span>;
+      if (!co) return <span style={styles.coAbsent}>-</span>;
       return (
         <span
           className="mono"
@@ -281,7 +281,7 @@ const CANOPEN_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 50,
     cell: ({ row }) => {
       const co = row.original.canopen;
-      if (!co || co.node_id === null) return <span style={styles.coAbsent}>—</span>;
+      if (!co || co.node_id === null) return <span style={styles.coAbsent}>-</span>;
       return (
         <span className="mono" style={{ fontSize: 11, color: 'var(--accent-amber)' }}>
           0x{co.node_id.toString(16).toUpperCase().padStart(2, '0')}
@@ -295,7 +295,7 @@ const CANOPEN_COLUMNS: ColumnDef<FrameRow>[] = [
     size: 200,
     cell: ({ row }) => {
       const co = row.original.canopen;
-      if (!co) return <span style={styles.coAbsent}>—</span>;
+      if (!co) return <span style={styles.coAbsent}>-</span>;
       const detail = canopenDetail(co);
       return (
         <span

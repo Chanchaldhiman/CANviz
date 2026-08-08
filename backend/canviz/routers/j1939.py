@@ -3,9 +3,9 @@ canviz/routers/j1939.py
 -----------------------
 REST endpoints for J1939 decoder control.
 
-GET  /j1939/status   — mode, auto_detected, SA table, recent BAM/DM1
-POST /j1939/mode     — set mode: {"mode": "on"} | {"mode": "off"}
-POST /j1939/reset    — clear SA table and BAM sessions
+GET  /j1939/status   - mode, auto_detected, SA table, recent BAM/DM1
+POST /j1939/mode     - set mode: {"mode": "on"} | {"mode": "off"}
+POST /j1939/reset    - clear SA table and BAM sessions
 """
 
 from fastapi import APIRouter, HTTPException
@@ -43,7 +43,7 @@ async def reset():
 @router.get("/debug/pgn_db")
 async def debug_pgn_db():
     """
-    Diagnostic endpoint — returns the raw top-level keys from J1939db.json
+    Diagnostic endpoint - returns the raw top-level keys from J1939db.json
     and the first 5 entries so we can see the actual structure.
     Only used during development to diagnose pretty_j1939 loading issues.
     """

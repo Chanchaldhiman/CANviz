@@ -67,7 +67,7 @@ export function SignalPlot() {
     setThresholds(next);
   };
 
-  // Breach detection — 10 Hz
+  // Breach detection - 10 Hz
   useEffect(() => {
     if (selectedSignals.length === 0) return;
     const id = setInterval(() => {
@@ -100,7 +100,7 @@ export function SignalPlot() {
   );
 
   const opts: uPlot.Options = useMemo(() => {
-    // Read CSS vars fresh each time — captures both initial and switched theme
+    // Read CSS vars fresh each time - captures both initial and switched theme
     const pt = getPlotTheme();
     return {
       width:  860,
@@ -164,7 +164,7 @@ export function SignalPlot() {
         }],
       },
     };
-  // theme is the key dep — forces opts rebuild when switching modes
+  // theme is the key dep - forces opts rebuild when switching modes
   // thresholdsRef and breachedRef are stable refs, intentionally excluded
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSignals, theme]);
@@ -192,7 +192,7 @@ export function SignalPlot() {
       border: '1px solid var(--border-subtle)',
     }}>
 
-      {/* Header — signal pills + controls */}
+      {/* Header - signal pills + controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
 
         {selectedSignals.map((key, i) => {
@@ -224,7 +224,7 @@ export function SignalPlot() {
                 placeholder="limit"
                 value={thresholds[key] !== undefined ? String(thresholds[key]) : ''}
                 onChange={(e) => handleThresholdChange(key, e.target.value)}
-                title="Threshold — line turns red when signal exceeds this value"
+                title="Threshold - line turns red when signal exceeds this value"
                 style={{
                   width: 46,
                   background: 'transparent',
@@ -418,7 +418,7 @@ export function SignalPlot() {
           borderRadius: '4px',
         }}>
           {availableSignals.length === 0
-            ? 'No decoded signals — load a DBC file then connect'
+            ? 'No decoded signals - load a DBC file then connect'
             : 'Add a signal above to begin plotting'}
         </div>
       )}

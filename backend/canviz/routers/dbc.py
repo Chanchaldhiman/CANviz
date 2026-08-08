@@ -3,9 +3,9 @@ canviz/routers/dbc.py
 ---------------------
 DBC file management endpoints.
 
-POST   /dbc/load      — upload and parse a DBC file
-GET    /dbc/messages  — list all decoded message definitions
-DELETE /dbc           — unload the current DBC
+POST   /dbc/load      - upload and parse a DBC file
+GET    /dbc/messages  - list all decoded message definitions
+DELETE /dbc           - unload the current DBC
 """
 
 from fastapi import APIRouter, HTTPException, UploadFile, File

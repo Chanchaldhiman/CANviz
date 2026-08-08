@@ -73,7 +73,7 @@ export function ReplayPanel() {
 
   return (
     <div>
-      {/* Speed selector — always visible */}
+      {/* Speed selector - always visible */}
       <div className="field-group">
         <label className="field-label">Playback Speed</label>
         <div style={styles.speedRow}>

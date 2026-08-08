@@ -3,8 +3,8 @@ canviz/routers/frames.py
 ------------------------
 WebSocket endpoint for live frame streaming + REST send endpoint.
 
-GET  /ws/frames  — WebSocket, streams every received CAN frame as JSON
-POST /send       — transmit a manually crafted frame onto the bus
+GET  /ws/frames  - WebSocket, streams every received CAN frame as JSON
+POST /send       - transmit a manually crafted frame onto the bus
 """
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
@@ -21,7 +21,7 @@ router = APIRouter(tags=["frames"])
 async def ws_frames(websocket: WebSocket):
     await broadcaster.register(websocket)
     try:
-        # Keep alive — we only need to detect disconnection
+        # Keep alive - we only need to detect disconnection
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
