@@ -12,6 +12,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Send Frame: the transmit list and saved sets persist in the browser across page reloads
 - Send Frame: export / import frame sets as JSON (`*.canviz.json`) to share them or keep them with a bench setup
 - Send Frame: optional per-frame label (e.g. "Ignition ON")
+- Send Frame: DBC integration -- pick a DBC message for a frame (or "+ Add from DBC") and edit its signals by name in physical units; the payload is encoded by cantools on the backend. CAN ID, DLC, 29-bit flag and interval (GenMsgCycleTime) are filled from the DBC; value tables (VAL_) become dropdowns; multiplexed messages show only the signals for the current multiplexer value; values outside the DBC range are flagged but still sent. Editing raw bytes updates the signal values; edits apply live to frames that are already transmitting. DBC links are saved with frame sets.
+- REST endpoints: `POST /dbc/encode`, `POST /dbc/decode`; `GET /dbc/messages` now includes scale/offset, signedness, byte order, initial value, value tables, multiplexing info, extended-ID flag and cycle time
+
+### Fixed
+- DBC state is re-synced from the backend on page load, so a loaded DBC no longer appears unloaded after a browser refresh
+- Removing the DBC in the UI now also unloads it on the backend (live frames were still being decoded)
 
 ---
 

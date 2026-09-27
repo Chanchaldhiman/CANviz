@@ -75,6 +75,10 @@ Give frames labels, save the list as a named frame set, and restore it later wit
 click. Export frame sets to JSON to share them or keep them alongside a bench setup,
 and import them back on any machine.
 
+With a DBC loaded, pick a message for any frame and edit its signals by name, in physical
+units, instead of hand-packing bytes. Value tables become dropdowns, multiplexed signals
+follow the multiplexer, and changes apply live to frames that are already transmitting.
+
 ### Record and replay
 
 Record to industry-standard `.asc` and `.csv`. Replay any log file with adjustable

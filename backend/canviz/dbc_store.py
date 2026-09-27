@@ -11,6 +11,7 @@ structured error — never a crash.
 from __future__ import annotations
 
 import logging
+import math
 from typing import Optional
 
 import cantools
@@ -86,25 +87,105 @@ class DBCStore:
         """Return all message definitions for GET /dbc/messages."""
         if self._db is None:
             return []
-        out = []
-        for msg in self._db.messages:
-            out.append({
-                "id":      hex(msg.frame_id),
-                "name":    msg.name,
-                "length":  msg.length,
-                "signals": [
-                    {
-                        "name":   s.name,
-                        "start":  s.start,
-                        "length": s.length,
-                        "unit":   s.unit or "",
-                        "min":    s.minimum,
-                        "max":    s.maximum,
-                    }
-                    for s in msg.signals
-                ],
-            })
-        return out
+        return [self._message_info(msg) for msg in self._db.messages]
+
+    @staticmethod
+    def _message_info(msg) -> dict:
+        return {
+            "id":          hex(msg.frame_id),
+            "name":        msg.name,
+            "length":      msg.length,
+            "is_extended": bool(msg.is_extended_frame),
+            "cycle_time":  msg.cycle_time,           # ms, from GenMsgCycleTime (or None)
+            "senders":     list(msg.senders or []),
+            "comment":     msg.comment or "",
+            "signals":     [DBCStore._signal_info(s) for s in msg.signals],
+        }
+
+    @staticmethod
+    def _signal_info(s) -> dict:
+        return {
+            "name":               s.name,
+            "start":              s.start,
+            "length":             s.length,
+            "unit":               s.unit or "",
+            "min":                s.minimum,
+            "max":                s.maximum,
+            "scale":              s.scale,
+            "offset":             s.offset,
+            "is_signed":          s.is_signed,
+            "is_float":           s.is_float,
+            "byte_order":         s.byte_order,
+            "initial":            s.initial,
+            # Value table (VAL_) as {raw value: label}; JSON keys are strings
+            "choices":            {int(k): str(v) for k, v in (s.choices or {}).items()},
+            "is_multiplexer":     s.is_multiplexer,
+            "multiplexer_ids":    s.multiplexer_ids,
+            "multiplexer_signal": s.multiplexer_signal,
+            "comment":            s.comment or "",
+        }
+
+    def _get_message(self, name: str):
+        if self._db is None:
+            raise LookupError("No DBC loaded.")
+        try:
+            return self._db.get_message_by_name(name)
+        except KeyError:
+            raise LookupError(f"Message '{name}' not found in DBC.") from None
+
+    def encode(self, message_name: str, signals: dict[str, float]) -> dict:
+        """
+        Encode physical signal values into a frame payload.
+
+        Signals missing from `signals` default to their DBC initial value
+        (GenSigStartValue) or 0. For multiplexed messages only the signals
+        selected by the multiplexer value are used; the rest are ignored.
+
+        Values outside the DBC [min|max] range are allowed on purpose, so
+        out-of-range / fault values can be injected on a bench; values that do
+        not fit the signal's bit width raise ValueError.
+
+        Raises LookupError if no DBC / unknown message.
+        """
+        msg = self._get_message(message_name)
+        values: dict[str, float] = {}
+        for sig in msg.signals:
+            v = signals.get(sig.name)
+            if v is None:
+                v = sig.initial if isinstance(sig.initial, (int, float)) else 0
+            if not math.isfinite(v):
+                raise ValueError(f"{sig.name}: value must be a finite number")
+            values[sig.name] = v
+        try:
+            if msg.is_multiplexed():
+                values = msg.gather_signals(values)
+            data = msg.encode(values, strict=False)
+        except OverflowError as exc:
+            raise ValueError(f"Value does not fit the signal's bit width: {exc}") from exc
+        except Exception as exc:
+            raise ValueError(f"Could not encode {msg.name}: {exc}") from exc
+        return {
+            "message":     msg.name,
+            "id":          msg.frame_id,
+            "is_extended": bool(msg.is_extended_frame),
+            "dlc":         msg.length,
+            "data":        list(data),
+            "signals":     {k: float(v) for k, v in values.items()},
+        }
+
+    def decode_message(self, message_name: str, data: bytes) -> dict[str, float]:
+        """
+        Decode `data` as the named message, returning {signal: physical value}.
+        Short payloads are decoded as far as they go (missing signals omitted).
+
+        Raises LookupError if no DBC / unknown message, ValueError on bad data.
+        """
+        msg = self._get_message(message_name)
+        try:
+            decoded = msg.decode(data, decode_choices=False, allow_truncated=True)
+        except Exception as exc:
+            raise ValueError(f"Could not decode {msg.name}: {exc}") from exc
+        return {k: float(v) for k, v in decoded.items()}
 
     def _summary(self) -> dict:
         assert self._db is not None

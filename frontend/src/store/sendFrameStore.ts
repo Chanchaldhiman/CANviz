@@ -1,12 +1,24 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { apiSendFrame } from '../api/client';
+import { apiSendFrame, apiDbcEncode, apiDbcDecode } from '../api/client';
+import { useDbcStore } from './dbcStore';
+import type { DbcMessage } from '../types/can';
 
 // Module-scope timer registry — never put intervals in Zustand state
 const timers = new Map<string, ReturnType<typeof setInterval>>();
 
 let counter = 0;
 const uid = () => `f_${++counter}_${Date.now()}`;
+
+// Latest DBC encode/decode request per frame — older responses are dropped
+const dbcSeq = new Map<string, number>();
+
+// Link between a transmit frame and a DBC message: the frame's payload is
+// generated from these physical signal values
+export interface FrameDbcLink {
+  message: string;                  // DBC message name
+  signals: Record<string, number>;  // physical values keyed by signal name
+}
 
 export interface TransmitFrame {
   id:         string;   // internal key
@@ -16,13 +28,14 @@ export interface TransmitFrame {
   data:       string;   // "FF 00 3C ..."
   isExtended: boolean;
   intervalMs: number;   // 0 = manual only
+  dbc:        FrameDbcLink | null;
   isRunning:  boolean;
   lastSent:   string | null;
   error:      string | null;
 }
 
 // The persistable part of a frame — runtime state (timers, feedback) is dropped
-export type SavedFrame = Pick<TransmitFrame, 'label' | 'canId' | 'dlc' | 'data' | 'isExtended' | 'intervalMs'>;
+export type SavedFrame = Pick<TransmitFrame, 'label' | 'canId' | 'dlc' | 'data' | 'isExtended' | 'intervalMs' | 'dbc'>;
 
 export interface FrameSet {
   name:    string;
@@ -44,7 +57,7 @@ function makeFrame(): TransmitFrame {
   return {
     id: uid(), label: '', canId: '0x123', dlc: 8,
     data: '00 00 00 00 00 00 00 00',
-    isExtended: false, intervalMs: 100,
+    isExtended: false, intervalMs: 100, dbc: null,
     isRunning: false, lastSent: null, error: null,
   };
 }
@@ -53,7 +66,20 @@ function toSaved(f: TransmitFrame): SavedFrame {
   return {
     label: f.label, canId: f.canId, dlc: f.dlc,
     data: f.data, isExtended: f.isExtended, intervalMs: f.intervalMs,
+    dbc: f.dbc ? { message: f.dbc.message, signals: { ...f.dbc.signals } } : null,
   };
+}
+
+function parseDbcLink(v: unknown): FrameDbcLink | null {
+  const o = v as Partial<FrameDbcLink> | null | undefined;
+  if (!o || typeof o.message !== 'string' || !o.message) return null;
+  const signals: Record<string, number> = {};
+  if (o.signals && typeof o.signals === 'object') {
+    for (const [k, val] of Object.entries(o.signals)) {
+      if (typeof val === 'number' && Number.isFinite(val)) signals[k] = val;
+    }
+  }
+  return { message: o.message, signals };
 }
 
 // Tolerant of missing / malformed fields so hand-edited or older files still load
@@ -69,6 +95,7 @@ function fromSaved(s: Partial<SavedFrame>): TransmitFrame {
     data:       typeof s.data === 'string' ? s.data : base.data,
     isExtended: !!s.isExtended,
     intervalMs: Number.isFinite(intervalMs) && intervalMs >= 0 ? intervalMs : base.intervalMs,
+    dbc:        parseDbcLink(s.dbc),
   };
 }
 
@@ -87,6 +114,19 @@ function parseBytes(s: string): number[] | null {
     bytes.push(v);
   }
   return bytes;
+}
+
+function toHex(bytes: number[]): string {
+  return bytes.map((b) => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+}
+
+export function findDbcMessage(name: string): DbcMessage | undefined {
+  return useDbcStore.getState().messages.find((m) => m.name === name);
+}
+
+/** Physical value used for a signal when nothing else is known */
+export function defaultSignalValue(sig: DbcMessage['signals'][number]): number {
+  return typeof sig.initial === 'number' ? sig.initial : 0;
 }
 
 async function doSend(f: TransmitFrame): Promise<string> {
@@ -164,6 +204,11 @@ interface SendFrameStore {
   deleteSet:   (name: string) => void;
   importSets:  (sets: FrameSet[]) => void;
   currentAsSet: () => FrameSet;
+
+  // DBC integration
+  addDbcFrame:      (message: string) => void;
+  attachDbcMessage: (id: string, message: string | null) => Promise<void>;
+  setSignalValue:   (id: string, signal: string, value: number) => Promise<void>;
 }
 
 export const useSendFrameStore = create<SendFrameStore>()(
@@ -178,11 +223,27 @@ export const useSendFrameStore = create<SendFrameStore>()(
 
       removeFrame: (id) => {
         if (timers.has(id)) { clearInterval(timers.get(id)!); timers.delete(id); }
+        dbcSeq.delete(id);
         set((s) => ({ frames: s.frames.filter((f) => f.id !== id), dirty: true }));
       },
 
-      updateFrame: (id, patch) =>
-        set((s) => ({ frames: s.frames.map((f) => f.id === id ? { ...f, ...patch } : f), dirty: true })),
+      updateFrame: (id, patch) => {
+        const before = get().frames.find((f) => f.id === id);
+        // Changing the identifier by hand breaks the link to the DBC message
+        const detach = !!before?.dbc && (
+          (patch.canId !== undefined && patch.canId !== before.canId) ||
+          (patch.isExtended !== undefined && patch.isExtended !== before.isExtended)
+        );
+        set((s) => ({
+          frames: s.frames.map((f) => f.id === id ? { ...f, ...patch, ...(detach ? { dbc: null } : {}) } : f),
+          dirty: true,
+        }));
+        // Hand-edited payload on a DBC frame: refresh the signal values from it
+        if (!detach && before?.dbc && patch.data !== undefined) {
+          const bytes = parseBytes(patch.data);
+          if (bytes !== null) void decodeInto(id, before.dbc.message, bytes);
+        }
+      },
 
       sendOnce: async (id) => {
         const frame = get().frames.find((f) => f.id === id);
@@ -262,6 +323,65 @@ export const useSendFrameStore = create<SendFrameStore>()(
         get().loadSet(incoming[0].name);
       },
 
+      addDbcFrame: (message) => {
+        const frame = makeFrame();
+        set((s) => ({ frames: [...s.frames, frame], dirty: true }));
+        void get().attachDbcMessage(frame.id, message);
+      },
+
+      attachDbcMessage: async (id, message) => {
+        const frame = get().frames.find((f) => f.id === id);
+        if (!frame) return;
+        if (message === null) {
+          dbcSeq.set(id, (dbcSeq.get(id) ?? 0) + 1);   // cancel in-flight updates
+          patchFrame(id, { dbc: null, error: null });
+          return;
+        }
+        const msg = findDbcMessage(message);
+        if (!msg) return;
+        if (msg.length > 8) {
+          patchFrame(id, { error: `${msg.name} is ${msg.length} bytes; only classic CAN (≤ 8) can be sent` });
+          return;
+        }
+
+        // Start from the frame's current payload when it already carries this
+        // message's ID, otherwise from the DBC initial values
+        const msgId = parseInt(msg.id, 16);
+        const sameId = parseId(frame.canId) === msgId && frame.isExtended === msg.is_extended;
+        let signals: Record<string, number> = Object.fromEntries(
+          msg.signals.map((sig) => [sig.name, defaultSignalValue(sig)]),
+        );
+        if (sameId) {
+          const bytes = parseBytes(frame.data);
+          if (bytes) {
+            try {
+              const decoded = await apiDbcDecode(msg.name, bytes);
+              signals = { ...signals, ...decoded.signals };
+            } catch { /* fall back to initial values */ }
+          }
+        }
+
+        patchFrame(id, {
+          canId:      `0x${msgId.toString(16).toUpperCase()}`,
+          isExtended: msg.is_extended,
+          dlc:        msg.length,
+          intervalMs: msg.cycle_time && msg.cycle_time > 0 ? msg.cycle_time : frame.intervalMs,
+          label:      frame.label || msg.name,
+          dbc:        { message: msg.name, signals },
+          error:      null,
+        });
+        set({ dirty: true });
+        await encodeInto(id);
+      },
+
+      setSignalValue: async (id, signal, value) => {
+        const frame = get().frames.find((f) => f.id === id);
+        if (!frame?.dbc) return;
+        patchFrame(id, { dbc: { ...frame.dbc, signals: { ...frame.dbc.signals, [signal]: value } } });
+        set({ dirty: true });
+        await encodeInto(id);
+      },
+
       currentAsSet: () => ({
         name: get().activeSet ?? 'frames',
         savedAt: Date.now(),
@@ -294,3 +414,40 @@ export const useSendFrameStore = create<SendFrameStore>()(
     },
   ),
 );
+
+function patchFrame(id: string, patch: Partial<TransmitFrame>) {
+  useSendFrameStore.setState((s) => ({
+    frames: s.frames.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+  }));
+}
+
+/** Re-encode a DBC-linked frame's payload from its signal values */
+async function encodeInto(id: string) {
+  const frame = useSendFrameStore.getState().frames.find((f) => f.id === id);
+  if (!frame?.dbc) return;
+  const seq = (dbcSeq.get(id) ?? 0) + 1;
+  dbcSeq.set(id, seq);
+  try {
+    const res = await apiDbcEncode(frame.dbc.message, frame.dbc.signals);
+    if (dbcSeq.get(id) !== seq) return;
+    patchFrame(id, { dlc: res.dlc, data: toHex(res.data), error: null });
+  } catch (e) {
+    if (dbcSeq.get(id) !== seq) return;
+    patchFrame(id, { error: (e as Error).message });
+  }
+}
+
+/** Refresh a DBC-linked frame's signal values from a raw payload */
+async function decodeInto(id: string, message: string, bytes: number[]) {
+  const seq = (dbcSeq.get(id) ?? 0) + 1;
+  dbcSeq.set(id, seq);
+  try {
+    const res = await apiDbcDecode(message, bytes);
+    if (dbcSeq.get(id) !== seq) return;
+    const frame = useSendFrameStore.getState().frames.find((f) => f.id === id);
+    if (!frame?.dbc || frame.dbc.message !== message) return;
+    patchFrame(id, { dbc: { ...frame.dbc, signals: { ...frame.dbc.signals, ...res.signals } }, error: null });
+  } catch {
+    // DBC not loaded / message gone — the raw payload is still valid to send
+  }
+}
