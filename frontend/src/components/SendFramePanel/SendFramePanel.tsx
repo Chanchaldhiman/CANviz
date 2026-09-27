@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useConnectionStore } from '../../store/connectionStore';
 import { useSendFrameStore } from '../../store/sendFrameStore';
+import { FrameSetToolbar } from './FrameSetToolbar';
 
 const DLC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -37,6 +38,9 @@ export function SendFramePanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 
+      {/* Save / restore frame sets */}
+      <FrameSetToolbar />
+
       {/* Column headers */}
       <div style={{ display: 'grid', ...gridStyle, color: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', padding: '0 2px' }}>
         <span>CAN ID</span>
@@ -53,6 +57,16 @@ export function SendFramePanel() {
           background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)',
           border: `1px solid ${f.isRunning ? 'var(--accent-green)' : 'var(--border-subtle)'}`,
           padding: '5px 7px', transition: 'border-color 0.2s' }}>
+
+          {/* Label row */}
+          <input
+            style={{ ...inp, fontFamily: 'var(--font-ui)', background: 'transparent',
+              border: '1px solid transparent', color: 'var(--text-secondary)', padding: '1px 5px' }}
+            value={f.label}
+            placeholder="Label (optional)"
+            onChange={(e) => updateFrame(f.id, { label: e.target.value })}
+            title="A name for this frame, saved with the frame set"
+          />
 
           {/* Input row */}
           <div style={{ display: 'grid', ...gridStyle, alignItems: 'center', gap: 5 }}>

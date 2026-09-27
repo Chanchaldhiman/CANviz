@@ -5,6 +5,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## Unreleased
+
+### Added
+- Send Frame: save / restore frame sets -- name and save the current transmit list, load it back later, delete saved sets
+- Send Frame: the transmit list and saved sets persist in the browser across page reloads
+- Send Frame: export / import frame sets as JSON (`*.canviz.json`) to share them or keep them with a bench setup
+- Send Frame: optional per-frame label (e.g. "Ignition ON")
+
+---
+
 ## v0.3.1 -- CANopen CiA 301 + CiA 402
 
 **CANopen decoder** -- passive protocol intelligence for robotics, industrial
