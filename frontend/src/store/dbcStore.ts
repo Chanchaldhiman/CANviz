@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { DbcMessage } from '../types/can';
-import { apiLoadDbc, apiGetDbcMessages } from '../api/client';
+import { apiLoadDbc, apiGetDbcMessages, apiUnloadDbc } from '../api/client';
 
 interface DbcStore {
   loaded: boolean;
@@ -38,15 +38,27 @@ export const useDbcStore = create<DbcStore>((set) => ({
     }
   },
 
+  // Resync with the backend, which keeps the DBC loaded across page reloads
   fetchMessages: async () => {
     try {
       const data = await apiGetDbcMessages();
-      set({ messages: (data.messages as DbcMessage[]) ?? [] });
+      if (data.loaded) {
+        set({
+          loaded: true,
+          filename: data.filename ?? null,
+          messages: (data.messages as DbcMessage[]) ?? [],
+        });
+      } else {
+        set({ loaded: false, filename: null, messages: [] });
+      }
     } catch {
       // Silent — not critical
     }
   },
 
-  clear: () =>
-    set({ loaded: false, filename: null, messages: [], error: null }),
+  clear: () => {
+    // Unload on the backend too, otherwise live frames keep being decoded
+    apiUnloadDbc().catch(() => { /* ignore */ });
+    set({ loaded: false, filename: null, messages: [], error: null });
+  },
 }));

@@ -69,7 +69,15 @@ lines with breach alerts. One-click PNG export.
 
 Build a list of frames, each with its own independent transmission interval. Send a
 heartbeat at 20 Hz and a speed signal at 10 Hz simultaneously. State persists across
-tab switches.
+tab switches and page reloads.
+
+Give frames labels, save the list as a named frame set, and restore it later with one
+click. Export frame sets to JSON to share them or keep them alongside a bench setup,
+and import them back on any machine.
+
+With a DBC loaded, pick a message for any frame and edit its signals by name, in physical
+units, instead of hand-packing bytes. Value tables become dropdowns, multiplexed signals
+follow the multiplexer, and changes apply live to frames that are already transmitting.
 
 ### Record and replay
 

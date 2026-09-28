@@ -145,21 +145,35 @@ export interface ConnectionState {
 // DBC types
 // ============================================================
 
+// Shape returned by GET /dbc/messages
 export interface DbcSignal {
   name: string;
-  unit: string;
-  min_value: number;
-  max_value: number;
-  start_bit: number;
+  start: number;
   length: number;
+  unit: string;
+  min: number | null;
+  max: number | null;
   scale: number;
   offset: number;
+  is_signed: boolean;
+  is_float: boolean;
+  byte_order: 'little_endian' | 'big_endian';
+  initial: number | null;
+  choices: Record<string, string>;     // raw value → label (VAL_ table)
+  is_multiplexer: boolean;
+  multiplexer_ids: number[] | null;    // mux values this signal is present for
+  multiplexer_signal: string | null;   // name of the multiplexer signal
+  comment: string;
 }
 
 export interface DbcMessage {
-  id: number;
+  id: string;                          // hex string, e.g. "0x100"
   name: string;
   length: number;
+  is_extended: boolean;
+  cycle_time: number | null;           // ms, from GenMsgCycleTime
+  senders: string[];
+  comment: string;
   signals: DbcSignal[];
 }
 

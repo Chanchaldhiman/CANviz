@@ -7,7 +7,7 @@ Keeping them in one place avoids circular imports.
 
 from __future__ import annotations
 from typing import Optional, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CANFrame(BaseModel):
@@ -46,6 +46,16 @@ class SendFrameRequest(BaseModel):
     id: int                        # Arbitration ID as integer
     data: list[int]                # Up to 8 bytes
     is_extended_id: bool = False
+
+
+class DBCEncodeRequest(BaseModel):
+    message: str                   # DBC message name
+    signals: dict[str, float] = {} # Physical values; missing signals use DBC initial value
+
+
+class DBCDecodeRequest(BaseModel):
+    message: str                   # DBC message name
+    data: list[int] = Field(max_length=64)  # Raw bytes
 
 
 class DBCInfo(BaseModel):

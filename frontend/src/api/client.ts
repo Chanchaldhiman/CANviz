@@ -88,7 +88,34 @@ export async function apiLoadDbc(file: File) {
 }
 
 export function apiGetDbcMessages() {
-  return request<{ messages: unknown[] }>('/dbc/messages');
+  return request<{ loaded: boolean; filename?: string; messages: unknown[] }>('/dbc/messages');
+}
+
+export function apiUnloadDbc() {
+  return request<{ ok: boolean }>('/dbc', { method: 'DELETE' });
+}
+
+export interface DbcEncodeResponse {
+  message: string;
+  id: number;
+  is_extended: boolean;
+  dlc: number;
+  data: number[];
+  signals: Record<string, number>;   // values actually used (mux-selected)
+}
+
+export function apiDbcEncode(message: string, signals: Record<string, number>) {
+  return request<DbcEncodeResponse>('/dbc/encode', {
+    method: 'POST',
+    body: JSON.stringify({ message, signals }),
+  });
+}
+
+export function apiDbcDecode(message: string, data: number[]) {
+  return request<{ message: string; signals: Record<string, number> }>('/dbc/decode', {
+    method: 'POST',
+    body: JSON.stringify({ message, data }),
+  });
 }
 
 // ============================================================

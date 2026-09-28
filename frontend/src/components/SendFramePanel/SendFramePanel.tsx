@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useConnectionStore } from '../../store/connectionStore';
+import { useDbcStore } from '../../store/dbcStore';
 import { useSendFrameStore } from '../../store/sendFrameStore';
+import { FrameSetToolbar } from './FrameSetToolbar';
+import { DbcSignalEditor } from './DbcSignalEditor';
 
 const DLC_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -14,8 +17,20 @@ export function SendFramePanel() {
   const status      = useConnectionStore((s) => s.status);
   const isConnected = status === 'connected';
 
-  const { frames, addFrame, removeFrame, updateFrame, sendOnce, toggleTimer, stopAll } =
-    useSendFrameStore();
+  const { frames, addFrame, removeFrame, updateFrame, sendOnce, toggleTimer, stopAll,
+    addDbcFrame, attachDbcMessage } = useSendFrameStore();
+
+  const dbcLoaded   = useDbcStore((s) => s.loaded);
+  const dbcMessages = useDbcStore((s) => s.messages);
+  const sortedMessages = [...dbcMessages].sort((a, b) => a.name.localeCompare(b.name));
+
+  // Frames whose signal editor is collapsed (expanded by default)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const toggleCollapsed = (id: string) => setCollapsed((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   // Stop all timers when disconnected
   useEffect(() => {
@@ -37,6 +52,9 @@ export function SendFramePanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
 
+      {/* Save / restore frame sets */}
+      <FrameSetToolbar />
+
       {/* Column headers */}
       <div style={{ display: 'grid', ...gridStyle, color: 'var(--text-muted)', fontSize: 10, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', padding: '0 2px' }}>
         <span>CAN ID</span>
@@ -48,11 +66,55 @@ export function SendFramePanel() {
       </div>
 
       {/* Frame rows */}
-      {frames.map((f) => (
+      {frames.map((f) => {
+        const dbcMsg = f.dbc ? dbcMessages.find((m) => m.name === f.dbc!.message) : undefined;
+        const showPicker = dbcLoaded || !!f.dbc;
+        const isCollapsed = collapsed.has(f.id);
+        return (
         <div key={f.id} style={{ display: 'flex', flexDirection: 'column', gap: 3,
           background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)',
           border: `1px solid ${f.isRunning ? 'var(--accent-green)' : 'var(--border-subtle)'}`,
           padding: '5px 7px', transition: 'border-color 0.2s' }}>
+
+          {/* Label row + DBC message picker */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <input
+              style={{ ...inp, flex: 1, fontFamily: 'var(--font-ui)', background: 'transparent',
+                border: '1px solid transparent', color: 'var(--text-secondary)', padding: '1px 5px' }}
+              value={f.label}
+              placeholder="Label (optional)"
+              onChange={(e) => updateFrame(f.id, { label: e.target.value })}
+              title="A name for this frame, saved with the frame set"
+            />
+            {showPicker && (
+              <select
+                style={{ ...inp, width: 200, cursor: 'pointer',
+                  color: f.dbc ? 'var(--accent-green)' : 'var(--text-muted)' }}
+                value={f.dbc?.message ?? ''}
+                onChange={(e) => void attachDbcMessage(f.id, e.target.value || null)}
+                title="Build the payload from a DBC message's signals"
+              >
+                <option value="">Raw bytes (no DBC)</option>
+                {f.dbc && !dbcMsg && (
+                  <option value={f.dbc.message} disabled>{f.dbc.message} (not in loaded DBC)</option>
+                )}
+                {sortedMessages.map((m) => (
+                  <option key={m.name} value={m.name} disabled={m.length > 8}>
+                    {m.name} ({m.id.toUpperCase().replace('0X', '0x')}){m.length > 8 ? ' — CAN FD' : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+            {dbcMsg && (
+              <button
+                style={{ ...btnStyle, fontSize: 10, padding: '1px 6px', whiteSpace: 'nowrap' }}
+                onClick={() => toggleCollapsed(f.id)}
+                title={isCollapsed ? 'Show signals' : 'Hide signals'}
+              >
+                {isCollapsed ? '▸' : '▾'} {dbcMsg.signals.length} sig
+              </button>
+            )}
+          </div>
 
           {/* Input row */}
           <div style={{ display: 'grid', ...gridStyle, alignItems: 'center', gap: 5 }}>
@@ -166,6 +228,9 @@ export function SendFramePanel() {
             </div>
           </div>
 
+          {/* DBC signal editor */}
+          {dbcMsg && !isCollapsed && <DbcSignalEditor frame={f} message={dbcMsg} />}
+
           {/* Feedback row */}
           {(f.lastSent || f.error) && (
             <div style={{
@@ -178,31 +243,50 @@ export function SendFramePanel() {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
 
-      {/* Add frame button */}
-      <button
-        onClick={addFrame}
-        style={{
-          background: 'none',
-          border: '1px dashed var(--border-default)',
-          borderRadius: 'var(--radius-sm)',
-          color: 'var(--text-muted)',
-          fontSize: 11,
-          fontFamily: 'var(--font-mono)',
-          padding: '5px',
-          cursor: 'pointer',
-          width: '100%',
-        }}
-      >
-        + Add Frame
-      </button>
+      {/* Add frame buttons */}
+      <div style={{ display: 'flex', gap: 5 }}>
+        <button
+          onClick={addFrame}
+          style={{
+            background: 'none',
+            border: '1px dashed var(--border-default)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--text-muted)',
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+            padding: '5px',
+            cursor: 'pointer',
+            flex: 1,
+          }}
+        >
+          + Add Frame
+        </button>
+        {dbcLoaded && sortedMessages.length > 0 && (
+          <select
+            style={{ ...inp, width: 220, cursor: 'pointer', border: '1px dashed var(--border-default)',
+              color: 'var(--text-muted)', fontSize: 11 }}
+            value=""
+            onChange={(e) => { if (e.target.value) addDbcFrame(e.target.value); }}
+            title="Add a frame built from a DBC message"
+          >
+            <option value="">+ Add from DBC…</option>
+            {sortedMessages.map((m) => (
+              <option key={m.name} value={m.name} disabled={m.length > 8}>
+                {m.name} ({m.id.toUpperCase().replace('0X', '0x')})
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
     </div>
   );
 }
 
 const gridStyle = {
-  gridTemplateColumns: '72px 44px 1fr 28px 110px auto',
+  gridTemplateColumns: '96px 44px 1fr 28px 110px auto',
   gap: 5,
 };
 

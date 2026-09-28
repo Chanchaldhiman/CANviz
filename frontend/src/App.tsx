@@ -6,6 +6,7 @@ import { Sidebar } from './components/Layout/Sidebar';
 import { MessageTable } from './components/MessageTable/MessageTable';
 import { BottomPanel } from './components/Layout/BottomPanel';
 import { ProtocolPanel } from './components/Layout/ProtocolPanel';
+import { useDbcStore } from './store/dbcStore';
 
 const MIN_RIGHTPANEL = 240;
 const MAX_RIGHTPANEL = 1100;
@@ -22,6 +23,10 @@ function loadRightWidth(): number {
 export function App() {
   useStatusSync();
   useWebSocket();
+
+  // Pick up a DBC the backend already has loaded (e.g. after a page reload)
+  const fetchDbcMessages = useDbcStore((s) => s.fetchMessages);
+  useEffect(() => { fetchDbcMessages(); }, [fetchDbcMessages]);
 
   const [rightWidth, setRightWidth] = useState<number>(loadRightWidth);
   const [dragging, setDragging]     = useState(false);
