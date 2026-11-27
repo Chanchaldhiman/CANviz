@@ -125,7 +125,7 @@ export type ConnectionStatus =
   | 'error'
   | 'disconnecting';
 
-export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual' | 'pcan' | 'kvaser' | 'seeedstudio';
+export type InterfaceType = 'gs_usb' | 'slcan' | 'socketcan' | 'virtual' | 'pcan' | 'kvaser' | 'seeedstudio' | 'cansub';
 
 export interface ConnectionConfig {
   interface: InterfaceType;

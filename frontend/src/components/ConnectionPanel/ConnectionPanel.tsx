@@ -31,6 +31,7 @@ const INTERFACES: { label: string; value: InterfaceType; hint: string }[] = [
   { value: 'virtual',     label: 'virtual (testing)',            hint: 'Software bus - no hardware required' },
   { value: 'pcan',        label: 'PCAN (PEAK)',                  hint: 'PEAK PCAN-USB - requires PEAK driver installed. Shows as CAN-Hardware in Device Manager.' },
   { value: 'kvaser',      label: 'Kvaser',                       hint: 'Kvaser hardware - requires Kvaser CANlib installed. Shows as CAN-Hardware (Kvaser) in Device Manager.' },
+  { value: 'cansub',      label: 'CANsub (CSS Electronics)',     hint: 'CANsub over USB or Ethernet - no driver needed. Channel is <device ID>-usb.local@1 (or -eth.local, or the IP), ID on the label.' },
 ];
 
 export function ConnectionPanel() {
@@ -125,6 +126,21 @@ export function ConnectionPanel() {
             className="field-input"
             type="text"
             placeholder="COM8"
+            value={config.channel ?? ''}
+            disabled={isConnected || isBusy}
+            onChange={(e) => setConfig({ channel: e.target.value })}
+          />
+        </div>
+      )}
+
+      {/* cansub: device hostname (or IP) and CAN channel */}
+      {config.interface === 'cansub' && (
+        <div className="field-group">
+          <label className="field-label">Channel</label>
+          <input
+            className="field-input"
+            type="text"
+            placeholder="aabbccdd-usb.local@1"
             value={config.channel ?? ''}
             disabled={isConnected || isBusy}
             onChange={(e) => setConfig({ channel: e.target.value })}

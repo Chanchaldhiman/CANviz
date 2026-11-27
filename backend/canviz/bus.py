@@ -8,6 +8,7 @@ Priority order (matches the design decision log):
   2. slcan   — COM port devices (secondary path)
   3. virtual — software bus, used for dev and CI (no hardware needed)
   4. socketcan — Linux SocketCAN (Raspberry Pi, WSL2)
+  5. cansub — CSS Electronics CANsub over USB or Ethernet (python-can-cansub plugin)
 
 Disconnect/reconnect design
 ---------------------------
@@ -373,10 +374,17 @@ def _open_bus(
         # internally in the seeedstudio interface.
         return can.Bus(interface="seeedstudio", channel=channel, bitrate=bitrate)
 
+    elif interface == "cansub":
+        # CSS Electronics CANsub via the python-can-cansub plugin. The channel is the
+        # device hostname (or IP) and the CAN channel, e.g. aabbccdd-usb.local@1.
+        if not channel:
+            raise ValueError("cansub requires a channel (e.g. aabbccdd-usb.local@1)")
+        return can.Bus(interface="cansub", channel=channel, bitrate=bitrate)
+
     else:
         raise ValueError(
             f"Unknown interface: {interface!r}. "
-            "Choose: gs_usb, slcan, socketcan, virtual, pcan, kvaser, seeedstudio"
+            "Choose: gs_usb, slcan, socketcan, virtual, pcan, kvaser, seeedstudio, cansub"
         )
 
 

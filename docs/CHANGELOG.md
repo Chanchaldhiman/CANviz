@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## Unreleased
+
+### Added
+- CSS Electronics CANsub (`cansub` interface) over USB or Ethernet via python-can-cansub
+
+---
+
 ## v0.3.1 -- CANopen CiA 301 + CiA 402
 
 **CANopen decoder** -- passive protocol intelligence for robotics, industrial

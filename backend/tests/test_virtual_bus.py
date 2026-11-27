@@ -74,6 +74,12 @@ async def test_connect_bad_interface(client):
     assert r.status_code in (422, 500)
 
 
+async def test_connect_cansub_needs_channel(client):
+    r = await client.post("/connect", json={"interface": "cansub", "channel": ""})
+    assert r.status_code == 500
+    assert "cansub requires a channel" in r.json()["detail"]
+
+
 # ── Frame send tests ──────────────────────────────────────────────────────────
 
 async def test_send_without_connect(client):

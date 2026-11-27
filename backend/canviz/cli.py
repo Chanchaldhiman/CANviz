@@ -67,7 +67,7 @@ InterfaceOpt = Annotated[
     str,
     typer.Option(
         "--interface", "-i",
-        help="CAN interface: gs_usb | slcan | socketcan | virtual",
+        help="CAN interface: gs_usb | slcan | socketcan | virtual | cansub",
     ),
 ]
 ChannelOpt = Annotated[
