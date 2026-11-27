@@ -150,6 +150,7 @@ driver setup:
 - **SocketCAN** -- Linux, Raspberry Pi, WSL2
 - **PEAK PCAN-USB** -- requires PEAK driver installed
 - **Kvaser** -- supported in config, see [Known Limitations](#known-limitations)
+- **CSS Electronics CANsub** -- USB or Ethernet, channel e.g. `aabbccdd-usb.local@1` (Python 3.12+)
 - **Virtual bus** -- software loopback, no hardware needed
 
 ---
@@ -186,7 +187,7 @@ proxy with authentication.
 ```
 canviz [OPTIONS]
 
-  --interface   gs_usb | slcan | socketcan | virtual  (default: gs_usb)
+  --interface   gs_usb | slcan | socketcan | virtual | cansub  (default: gs_usb)
   --channel     COM port or SocketCAN channel  (e.g. COM3, can0)
   --bitrate     CAN bitrate in bps  (default: 500000)
   --host        Host to bind to  (default: 127.0.0.1)

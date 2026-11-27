@@ -34,6 +34,8 @@ dependencies = [
     "pretty_j1939>=0.0.4",
     "httpx>=0.27",
     "canopen>=2.4.0",
+    # CSS Electronics CANsub (python-can plugin); it needs Python 3.12 or newer
+    "python-can-cansub>=2026.9.28; python_version >= '3.12'",
 ]
 
 [project.urls]

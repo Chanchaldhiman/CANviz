@@ -67,6 +67,7 @@ for baud in [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 2000000]
 | Cheap "USB CAN Analyzer" from Amazon/AliExpress | COM port | seeedstudio (most likely) |
 | PEAK PCAN-USB | CAN-Hardware in Device Manager | pcan |
 | Kvaser | CAN-Hardware in Device Manager | kvaser |
+| CSS Electronics CANsub | USB or Ethernet network device - no COM port | cansub |
 | No hardware | - | virtual |
 
 > **CANable 2.0 clones** - CANable 2.0 *Pro* ships with Candlelight firmware (gs_usb).
