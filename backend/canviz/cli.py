@@ -1130,6 +1130,7 @@ def j1939_status(
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
+    sys.stdout.reconfigure(encoding="utf-8")  # redirected output on Windows is cp1252, which has no "→"
     app()
 
 
